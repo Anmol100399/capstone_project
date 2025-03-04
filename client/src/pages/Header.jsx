@@ -148,10 +148,12 @@ export default function Header() {
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
+                <Link to="/userAccount" className="flex items-center gap-2 cursor-pointer">
                 <span className="font-semibold text-gray-700">
                   {user?.name ? user.name.toUpperCase() : "Guest"}
                 </span>
                 <BsFillCaretDownFill className="h-4 w-4 text-gray-500" />
+                </Link>
               </div>
 
               {/* Dropdown Menu */}
