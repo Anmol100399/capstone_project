@@ -10,26 +10,28 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [redirect, setRedirect] = useState('');
   
-
-  async function registerUser(ev){
+  async function registerUser(ev) {
     ev.preventDefault();
-
+  
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      alert("Passwords do not match");
       return;
     }
-
-    try{
-      await axios.post('/register', {
-        name,
-        email,
-        password,
-        
-      });
-      alert('Registration Successful')
-      setRedirect(true)
-    }catch(e){
-      alert('Registration failed')
+  
+    const payload = {
+      name,
+      email,
+      password,
+    };
+  
+    console.log("Request Payload:", payload); // Log the payload
+  
+    try {
+      const response = await axios.post("/register", payload);
+      alert("Registration Successful");
+      setRedirect(true);
+    } catch (e) {
+      alert("Registration failed: " + (e.response?.data?.error || "An error occurred"));
     }
   }
 
@@ -93,7 +95,6 @@ export default function RegisterPage() {
               </svg>
               <input type ="password"  placeholder="Confirm password" className="input-et" value={confirmPassword} onChange={ev => setConfirmPassword(ev.target.value)}/>
             </div>
-
             
             <div className="w-full py-4">
               <button type="submit" className="primary w-full"> Create Account </button>
@@ -102,7 +103,7 @@ export default function RegisterPage() {
             <div className="container2">
               <div className="w-full h-full p-1">
                 <Link to={'/login'}>
-                  <button type="submit" className="text-black cursor-pointer rounded w-full h-full font-bold" > Sign In</button>
+                  <button type="submit" className="text-black cursor-pointer rounded w-full h-full font-bold" > Log In</button>
                 </Link>
               </div>
               <div className="w-full h-full p-1">
