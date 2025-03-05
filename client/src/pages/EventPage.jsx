@@ -1,124 +1,106 @@
 import axios from "axios";
-
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { AiFillCalendar } from "react-icons/ai";
 import { MdLocationPin } from "react-icons/md";
 import { FaCopy, FaWhatsappSquare, FaFacebook } from "react-icons/fa";
 
 export default function EventPage() {
-  const {id} = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
 
-  //! Fetching the event data from server by ID ------------------------------------------
-  useEffect(()=>{
-    if(!id){
-      return;
-    }
-    axios.get(`/event/${id}`).then(response => {
-      setEvent(response.data)
-    }).catch((error) => {
-      console.error("Error fetching events:", error);
-    });
-  }, [id])
+  useEffect(() => {
+    if (!id) return;
+    axios
+      .get(`/event/${id}`)
+      .then((response) => {
+        setEvent(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching event:", error);
+      });
+  }, [id]);
 
-  //! Copy Functionalities -----------------------------------------------
   const handleCopyLink = () => {
-    const linkToShare = window.location.href;
-    navigator.clipboard.writeText(linkToShare).then(() => {
-      alert('Link copied to clipboard!');
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert("Link copied to clipboard!");
     });
   };
 
   const handleWhatsAppShare = () => {
-    const linkToShare = window.location.href;
-    const whatsappMessage = encodeURIComponent(`${linkToShare}`);
-    window.open(`whatsapp://send?text=${whatsappMessage}`);
+    window.open(`whatsapp://send?text=${encodeURIComponent(window.location.href)}`);
   };
 
   const handleFacebookShare = () => {
-    const linkToShare = window.location.href;
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(linkToShare)}`;
-    window.open(facebookShareUrl);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`);
   };
-  
-if (!event) return '';
+
+  if (!event) return <div className="text-center py-10 text-lg text-gray-600">Loading event details...</div>;
+
   return (
-    <div className="flex flex-col mx-5 xl:mx-32 md:mx-10 mt-5 flex-grow">
-     <div >
-        {event.image &&(
-          <img src={`${event.image}`} alt="" height="500px" width="1440px" className='rounded object-fill aspect-16:9'/>
-        )}
-      </div>
+    <div className="flex flex-col mx-auto max-w-5xl p-6 md:p-10 bg-white shadow-lg rounded-xl mt-10">
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate(-1)} 
+        className="mb-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition self-start"
+      >
+        ← Back
+      </button>
 
-      <img src="../src/assets/paduru.png" alt="" className='rounded object-fill aspect-16:9'/> 
-      {/* FIXME: This is a demo image after completing the create event function delete this */}
+      {event.image && (
+        <img
+          src={`http://localhost:4000/${event.image}`}
+          alt={event.title}
+          className="w-full rounded-lg object-cover h-80 shadow-md mb-6"
+        />
+      )}
 
-      <div className="flex justify-between mt-8 mx-2">
-          <h1 className="text-3xl md:text-5xl font-extrabold">{event.title.toUpperCase()}</h1>
-          <Link to={'/event/'+event._id+ '/ordersummary'}>
-            <button className="primary">Book Ticket</button>  
-          </Link>
-      </div>
-      <div className="mx-2">
-          <h2 className="text-md md:text-xl font-bold mt-3 text-primarydark">{event.ticketPrice === 0? 'Free' : 'LKR. '+ event.ticketPrice}</h2>
-      </div>
-      <div className="mx-2 mt-5 text-md md:text-lg truncate-3-lines">
-        {event.description}
-      </div>
-      <div className="mx-2 mt-5 text-md md:text-xl font-bold text-primarydark">
-        Organized By {event.organizedBy}
-        
-      </div>
-      <div className="mx-2 mt-5">
-        <h1 className="text-md md:text-xl font-extrabold">When and Where </h1>
-        <div className="sm:mx-5 lg:mx-32 mt-6 flex flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <AiFillCalendar className="w-auto h-5 text-primarydark "/>
-            <div className="flex flex-col gap-1">
-              
-              <h1 className="text-md md:text-lg font-extrabold">Date and Time</h1>
-              <div className="text-sm md:text-lg">
-              Date: {event.eventDate.split("T")[0]} <br />Time: {event.eventTime}
-              </div>
-            </div>
-            
-          </div>
-          <div className="">
-            <div className="flex items-center gap-4">
-            <MdLocationPin className="w-auto h-5 text-primarydark "/>
-            <div className="flex flex-col gap-1">
-              
-              <h1 className="text-md md:text-lg font-extrabold">Location</h1>
-              <div className="text-sm md:text-lg">
-                {event.location}
-              </div>
-            </div>
-            
-          </div>
+      <h1 className="text-4xl font-bold text-gray-900 text-center mb-4">{event.title}</h1>
+      <p className="text-xl text-gray-700 text-center mb-4">
+        {event.ticketPrice === 0 ? "Free" : `CAD ${event.ticketPrice}$`}
+      </p>
+
+      <p className="text-md text-gray-600 text-center mb-4">{event.description}</p>
+      <p className="text-md text-gray-800 font-semibold text-center mb-6">Organized by: {event.organizedBy}</p>
+
+      <div className="flex flex-col md:flex-row justify-between bg-gray-100 p-6 rounded-lg shadow-sm mb-6">
+        <div className="flex items-center gap-3">
+          <AiFillCalendar className="text-blue-600 h-6 w-6" />
+          <div>
+            <h3 className="font-semibold text-gray-900">Date & Time</h3>
+            <p className="text-gray-700">{event.eventDate.split("T")[0]} at {event.eventTime}</p>
           </div>
         </div>
-            
-      </div>
-      <div className="mx-2 mt-5 text-md md:text-xl font-extrabold">
-        Share with friends
-        <div className="mt-10 flex gap-5 mx-10 md:mx-32 ">
-        <button onClick={handleCopyLink}>
-            <FaCopy className="w-auto h-6" />
-          </button>
-
-          <button onClick={handleWhatsAppShare}>
-            <FaWhatsappSquare className="w-auto h-6" />
-          </button>
-
-          <button onClick={handleFacebookShare}>
-            <FaFacebook className="w-auto h-6" />
-          </button>
-
+        <div className="flex items-center gap-3">
+          <MdLocationPin className="text-red-600 h-6 w-6" />
+          <div>
+            <h3 className="font-semibold text-gray-900">Location</h3>
+            <p className="text-gray-700">{event.location}</p>
+          </div>
         </div>
       </div>
 
+      <Link to={`/event/${event._id}/ordersummary`} className="block w-full">
+        <button className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white py-3 rounded-lg text-lg font-semibold hover:opacity-90 transition">
+          Book Ticket
+        </button>
+      </Link>
 
+      <div className="mt-6">
+        <h3 className="text-lg font-bold text-gray-900 text-center mb-4">Share this Event</h3>
+        <div className="flex justify-center gap-6">
+          <button onClick={handleCopyLink} className="bg-gray-200 p-3 rounded-lg hover:bg-gray-300 transition">
+            <FaCopy className="h-6 w-6 text-gray-800" />
+          </button>
+          <button onClick={handleWhatsAppShare} className="bg-green-500 p-3 rounded-lg hover:bg-green-600 transition">
+            <FaWhatsappSquare className="h-6 w-6 text-white" />
+          </button>
+          <button onClick={handleFacebookShare} className="bg-blue-600 p-3 rounded-lg hover:bg-blue-700 transition">
+            <FaFacebook className="h-6 w-6 text-white" />
+          </button>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

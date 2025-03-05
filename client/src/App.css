@@ -487,3 +487,18 @@ transition: all 0.2s ease-in-out;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Infinite scroll animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.carousel-container {
+  display: flex;
+  animation: scroll 20s linear infinite;
+}

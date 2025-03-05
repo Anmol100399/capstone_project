@@ -4,7 +4,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths } from "
 import { useEffect, useState } from "react";
 import { BsCaretLeftFill, BsFillCaretRightFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
-
+import { startOfDay, isSameDay } from 'date-fns';
 
 export default function CalendarView() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -54,13 +54,21 @@ export default function CalendarView() {
               <div className="font-bold">{format(date, "dd")}</div>
               <div className="absolute top-8">
                 {events
-                  .filter((event) => format(new Date(event.eventDate), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"))
+                  .filter((event) => {
+                    const eventDate = new Date(event.eventDate);
+                    const calendarDate = date;
+
+                    // Normalize both event date and calendar date to 00:00:00 UTC
+                    const eventStartOfDay = new Date(Date.UTC(eventDate.getUTCFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate()));
+                    const calendarStartOfDay = new Date(Date.UTC(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate()));
+
+                    return isSameDay(eventStartOfDay, calendarStartOfDay);
+                  })
                   .map((event) => (
                     <div key={event._id} className="mt-0 flex md:mt-2">
                       <Link to={"/event/" + event._id}>
                         <div className="text-white bg-primary rounded p-1 font-bold text-xs md:text-base md:p-2">{event.title.toUpperCase()}</div>
                       </Link>
-                      
                     </div>
                   ))}
               </div>
