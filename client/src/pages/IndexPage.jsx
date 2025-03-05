@@ -24,16 +24,17 @@ export default function IndexPage() {
   // Like functionality
   const handleLike = (eventId) => {
     axios
-      .post(`/event/${eventId}`)
+      .post(`/event/${eventId}/like`) // Updated endpoint
       .then((response) => {
+        // Update the likes count in the state
         setEvents((prevEvents) =>
           prevEvents.map((event) =>
-            event._id === eventId ? { ...event, likes: event.likes + 1 } : event
+            event._id === eventId ? { ...event, likes: response.data.likes } : event
           )
         );
       })
       .catch((error) => {
-        console.error("Error liking ", error);
+        console.error("Error liking the event:", error);
       });
   };
 
@@ -128,9 +129,13 @@ export default function IndexPage() {
                           {event.eventDate.split("T")[0]}, {event.eventTime}
                         </div>
                         <div className="text-sm font-semibold text-gray-700">
-                          {event.ticketPrice === 0
-                            ? "Free"
-                            : `CAD ${event.ticketPrice}$`}
+                          {event.ticketPrice === 0 ? (
+                            <span className="text-green-600 font-bold">Free</span>
+                          ) : (
+                            <span className="text-blue-600 font-bold">
+                              CAD {event.ticketPrice}$
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex justify-between items-center mb-4">
