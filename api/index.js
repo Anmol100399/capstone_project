@@ -178,18 +178,26 @@ app.get("/event/:id", async (req, res) => {
 // Like an Event
 app.post("/event/:eventId/like", async (req, res) => {
    const { eventId } = req.params;
+ 
    try {
-      const event = await Event.findById(eventId);
-      if (!event) {
-         return res.status(404).json({ error: "Event not found" });
-      }
-      event.likes += 1;
-      await event.save();
-      res.json(event);
+     // Find the event and increment the likes count
+     const event = await Event.findByIdAndUpdate(
+       eventId,
+       { $inc: { likes: 1 } }, // Increment likes by 1
+       { new: true } // Return the updated event
+     );
+ 
+     if (!event) {
+       return res.status(404).json({ error: "Event not found" });
+     }
+ 
+     res.json(event); // Return the updated event with the new likes count
    } catch (error) {
-      res.status(500).json({ error: "Failed to like the event" });
+     console.error("Error liking event:", error);
+     res.status(500).json({ error: "Failed to like event" });
    }
-});
+ });
+ 
 
 // Get All Events (Filtered by Status)
 app.get("/events", async (req, res) => {
