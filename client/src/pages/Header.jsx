@@ -2,11 +2,10 @@ import { useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { UserContext } from "../UserContext";
-import { RxExit } from "react-icons/rx";
 import { BsFillCaretDownFill } from "react-icons/bs";
 
 export default function Header() {
-  const { user, setUser } = useContext(UserContext);
+  const { user, logoutUser } = useContext(UserContext); // Use logoutUser from context
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,9 +30,7 @@ export default function Header() {
   const logout = async () => {
     try {
       console.log("Logging out user:", user);
-      await axios.post("/logout", {}, { withCredentials: true }); // Ensure credentials are sent
-      localStorage.removeItem("token"); // Remove stored JWT token (if applicable)
-      setUser(null); // Clear user state
+      await logoutUser(); // Use logoutUser from context
       window.location.href = "/"; // Redirect to homepage
     } catch (error) {
       console.error("Logout failed:", error);
@@ -144,35 +141,28 @@ export default function Header() {
         {user && (
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div
+              {/* User Name (Clickable to go to Account Page) */}
+              <Link
+                to="/userAccount"
                 className="flex items-center gap-2 cursor-pointer"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                <Link to="/userAccount" className="flex items-center gap-2 cursor-pointer">
                 <span className="font-semibold text-gray-700">
                   {user?.name ? user.name.toUpperCase() : "Guest"}
                 </span>
-                <BsFillCaretDownFill className="h-4 w-4 text-gray-500" />
-                </Link>
-              </div>
+                <BsFillCaretDownFill
+                  className="h-4 w-4 text-gray-500"
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent Link navigation
+                    setIsMenuOpen(!isMenuOpen);
+                  }}
+                />
+              </Link>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown Menu (Only Log Out Option) */}
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
                   <nav>
                     <div className="flex flex-col py-2">
-                      <Link
-                        to="/createEvent"
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Create Event
-                      </Link>
-                      <Link
-                        to="/calendar"
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Calendar
-                      </Link>
                       <button
                         onClick={logout}
                         className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
