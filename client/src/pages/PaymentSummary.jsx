@@ -1,12 +1,14 @@
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
-import { Link, Navigate, useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { Link, Navigate, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { IoMdArrowBack } from 'react-icons/io';
 import { UserContext } from '../UserContext';
 import Qrcode from 'qrcode';
 
 export default function PaymentSummary() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const ticketQuantity = Number(searchParams.get('tickets')) || 1; // Get ticketQuantity from query parameter
   const [event, setEvent] = useState(null);
   const { user } = useContext(UserContext);
   const [details, setDetails] = useState({
@@ -33,7 +35,7 @@ export default function PaymentSummary() {
     cvv: '',
   });
   const [redirect, setRedirect] = useState(false);
-  const navigate = useNavigate(); // Use useNavigate for navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -99,17 +101,12 @@ export default function PaymentSummary() {
           qr: qrCode,
         },
       };
-  
-      console.log("Sending ticket data:", updatedTicketDetails); // Log the payload
-  
+
       const response = await axios.post(`/tickets`, updatedTicketDetails);
-      console.log("Ticket creation response:", response.data);
-  
       alert("Ticket Created");
       setRedirect(true);
     } catch (error) {
       console.error('Error creating ticket:', error);
-      console.error('Error response:', error.response?.data); // Log the server's error response
       alert("Generating Ticket Failed: Make sure you Login to get a ticket");
     }
   };
@@ -128,11 +125,14 @@ export default function PaymentSummary() {
 
   useEffect(() => {
     if (redirect) {
-      navigate('/tickets'); // Use navigate to redirect to the tickets page
+      navigate('/tickets');
     }
   }, [redirect, navigate]);
 
   if (!event) return '';
+
+  // Calculate total price
+  const totalPrice = event.ticketPrice * ticketQuantity;
 
   return (
     <>
@@ -230,27 +230,41 @@ export default function PaymentSummary() {
         </div>
 
         {/* Right Section - Order Summary */}
-        <div className="bg-blue-100 p-8 rounded-md w-1/4 h-2/5">
-          <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
-          <div className="space-y-2">
-            <p className="font-bold">{event.title}</p>
-            <p className="text-sm">{event.eventDate.split("T")[0]}, {event.eventTime}</p>
-            <hr className="my-4 border-t border-gray-400" />
-            <p className="float-right text-lg font-semibold">CAD {event.ticketPrice}$</p>
-            <p className="font-bold">Total: {event.ticketPrice}$</p>
-          </div>
-        </div>
-      </div>
+        <div className="bg-white shadow-lg p-8 rounded-md w-1/4 h-fit">
+          <h2 className="text-2xl font-semibold mb-6 text-gray-800">Order Summary</h2>
+          <div className="space-y-4">
+            {/* Event Details */}
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-medium text-gray-700">{event.title}</span>
+              <span className="text-lg font-semibold text-blue-600">CAD {event.ticketPrice}$</span>
+            </div>
+            <p className="text-sm text-gray-500">
+              {event.eventDate.split("T")[0]}, {event.eventTime}
+            </p>
+            <hr className="my-4 border-t border-gray-200" />
 
-      {/* Payment Button */}
-      <div className="mt-8 mx-12">
+            {/* Ticket Quantity */}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Tickets</span>
+              <span className="text-sm font-semibold text-gray-800">{ticketQuantity}</span>
+            </div>
+
+            {/* Total Price */}
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-medium text-gray-700">Total</span>
+              <span className="text-xl font-bold text-blue-600">CAD {totalPrice}$</span>
+            </div>
+          </div>
+
+          {/* Payment Button */}
           <button
             type="button"
             onClick={createTicket}
-            className="primary bg-blue-600 text-white rounded-md py-2 px-8 w-full hover:bg-blue-700 transition-all"
+            className="w-full mt-8 p-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-all"
           >
             Make Payment
           </button>
+        </div>
       </div>
     </>
   );

@@ -108,7 +108,9 @@ export default function OrderSummary() {
             </span>
           </div>
 
-          <Link to={`/event/${event._id}/ordersummary/paymentsummary`}>
+          <Link
+            to={`/event/${event._id}/ordersummary/paymentsummary?tickets=${ticketQuantity}`} // Pass ticketQuantity as query parameter
+          >
             <button
               className={`w-full p-3 text-white rounded-md ${isCheckboxChecked ? 'bg-blue-700' : 'bg-gray-300'}`}
               disabled={!isCheckboxChecked}
