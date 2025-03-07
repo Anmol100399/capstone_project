@@ -1,11 +1,25 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { IoMdArrowBack } from "react-icons/io";
 import { RiDeleteBinLine } from "react-icons/ri";
 import axios from "axios";
 
 export default function TicketPage() {
   const [tickets, setTickets] = useState([]);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get event ID and ticketQuantity from location state
+  const eventId = location.state?.eventId;
+  const ticketQuantity = location.state?.ticketQuantity || 1;
+
+  // Redirect if eventId is missing
+  useEffect(() => {
+    if (!eventId) {
+      alert("Event ID is missing. Redirecting to homepage.");
+      navigate("/"); // Redirect to homepage or a fallback page
+    }
+  }, [eventId, navigate]);
 
   useEffect(() => {
     fetchTickets();
@@ -21,6 +35,9 @@ export default function TicketPage() {
   };
 
   const deleteTicket = async (ticketId) => {
+    const isConfirmed = window.confirm("Are you sure you want to delete this ticket?");
+    if (!isConfirmed) return;
+
     try {
       await axios.delete(`/tickets/${ticketId}`);
       fetchTickets();
@@ -34,7 +51,13 @@ export default function TicketPage() {
     <div className="flex flex-col flex-grow p-8 bg-gray-50 min-h-screen">
       {/* Back Button */}
       <div className="mb-8">
-        <Link to="/">
+        {/* Pass event ID and ticketQuantity to PaymentSummary */}
+        <Link
+          to={{
+            pathname: `/event/${eventId}/ordersummary/paymentsummary`,
+            search: `?tickets=${ticketQuantity}`, // Pass ticketQuantity as a query parameter
+          }}
+        >
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all">
             <IoMdArrowBack className="w-5 h-5" />
             Back
@@ -67,7 +90,7 @@ export default function TicketPage() {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
-                    timeZone: "UTC", // Use UTC to avoid timezone issues
+                    timeZone: "UTC",
                   })}
                 </p>
                 <p className="text-lg text-gray-600">

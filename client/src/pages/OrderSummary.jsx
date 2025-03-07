@@ -41,7 +41,7 @@ export default function OrderSummary() {
     <div className="max-w-7xl mx-auto px-6">
       <Link to={`/event/${event._id}`} className="mt-12 inline-flex items-center gap-2 p-3 text-blue-700 font-semibold bg-gray-100 rounded-md hover:bg-gray-200 transition">
         <IoMdArrowBack className="w-6 h-6" />
-        <span className="text-lg">Back to Event</span>
+        <span className="text-lg">Back</span>
       </Link>
       
       <div className="flex flex-col md:flex-row mt-8 gap-6">

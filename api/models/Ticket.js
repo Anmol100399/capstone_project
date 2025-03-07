@@ -5,15 +5,15 @@ const ticketSchema = new mongoose.Schema({
    eventid: { type: String },
    ticketDetails: {
       name: { type: String, required: true },
-      email: { type: String, require: true },
-      eventname: { type: String, require: true },
-      eventdate: { type: Date, require: true },
-      eventtime: { type: String, require: true },
-      ticketprice: { type: Number, require: true },
-      qr: { type: String, require: true },
+      email: { type: String, required: true },
+      eventname: { type: String, required: true },
+      eventdate: { type: Date, required: true },
+      eventtime: { type: String, required: true },
+      ticketprice: { type: Number, required: true },
+      qr: { type: String, required: true },
    },
    count: { type: Number, default: 0 },
 });
 
-const TicketModel = mongoose.model(`Ticket`, ticketSchema);
+const TicketModel = mongoose.model("Ticket", ticketSchema);
 module.exports = TicketModel;

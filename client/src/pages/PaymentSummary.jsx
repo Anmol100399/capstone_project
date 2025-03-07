@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
-import { Link, Navigate, useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { IoMdArrowBack } from 'react-icons/io';
 import { UserContext } from '../UserContext';
 import Qrcode from 'qrcode';
@@ -35,6 +35,7 @@ export default function PaymentSummary() {
     cvv: '',
   });
   const [redirect, setRedirect] = useState(false);
+  const [error, setError] = useState(''); // State to store error messages
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,27 +88,53 @@ export default function PaymentSummary() {
     }));
   };
 
+  const validateFields = () => {
+    if (!details.name || !details.email || !details.contactNo) {
+      setError('Please fill out all your details.');
+      return false;
+    }
+    if (!payment.nameOnCard || !payment.cardNumber || !payment.expiryDate || !payment.cvv) {
+      setError('Please fill out all credit card details.');
+      return false;
+    }
+    setError(''); // Clear any previous errors
+    return true;
+  };
+
   const createTicket = async (e) => {
     e.preventDefault();
-    try {
-      const qrCode = await generateQRCode(
-        ticketDetails.ticketDetails.eventname,
-        ticketDetails.ticketDetails.name
-      );
-      const updatedTicketDetails = {
-        ...ticketDetails,
-        ticketDetails: {
-          ...ticketDetails.ticketDetails,
-          qr: qrCode,
-        },
-      };
+    if (!validateFields()) return; // Stop if validation fails
 
-      const response = await axios.post(`/tickets`, updatedTicketDetails);
-      alert("Ticket Created");
-      setRedirect(true);
+    try {
+      // Loop through the number of tickets selected
+      for (let i = 0; i < ticketQuantity; i++) {
+        // Generate a unique QR code for each ticket
+        const qrCode = await generateQRCode(
+          ticketDetails.ticketDetails.eventname,
+          `${ticketDetails.ticketDetails.name} - Ticket ${i + 1}` // Add a unique identifier for each ticket
+        );
+
+        // Update ticket details with the QR code
+        const updatedTicketDetails = {
+          ...ticketDetails,
+          ticketDetails: {
+            ...ticketDetails.ticketDetails,
+            qr: qrCode,
+          },
+        };
+
+        // Create the ticket
+        await axios.post(`/tickets`, updatedTicketDetails);
+      }
+
+      alert(`${ticketQuantity} Tickets Created Successfully`);
+      // Navigate to TicketPage with eventId and ticketQuantity
+      navigate('/tickets', {
+        state: { eventId: id, ticketQuantity },
+      });
     } catch (error) {
-      console.error('Error creating ticket:', error);
-      alert("Generating Ticket Failed: Make sure you Login to get a ticket");
+      console.error('Error creating tickets:', error);
+      alert("Generating Tickets Failed: Make sure you are logged in to get tickets");
     }
   };
 
@@ -122,12 +149,6 @@ export default function PaymentSummary() {
       return null;
     }
   };
-
-  useEffect(() => {
-    if (redirect) {
-      navigate('/tickets');
-    }
-  }, [redirect, navigate]);
 
   if (!event) return '';
 
@@ -230,37 +251,61 @@ export default function PaymentSummary() {
         </div>
 
         {/* Right Section - Order Summary */}
-        <div className="bg-white shadow-lg p-8 rounded-md w-1/4 h-fit">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800">Order Summary</h2>
-          <div className="space-y-4">
-            {/* Event Details */}
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-medium text-gray-700">{event.title}</span>
-              <span className="text-lg font-semibold text-blue-600">CAD {event.ticketPrice}$</span>
-            </div>
-            <p className="text-sm text-gray-500">
-              {event.eventDate.split("T")[0]}, {event.eventTime}
-            </p>
-            <hr className="my-4 border-t border-gray-200" />
-
-            {/* Ticket Quantity */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Tickets</span>
-              <span className="text-sm font-semibold text-gray-800">{ticketQuantity}</span>
-            </div>
-
-            {/* Total Price */}
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-medium text-gray-700">Total</span>
-              <span className="text-xl font-bold text-blue-600">CAD {totalPrice}$</span>
-            </div>
+        <div className="bg-blue-100 w-1/4 p-6 rounded-lg shadow-lg h-fit">
+          <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
+          
+          {/* Event Details */}
+          <div className="flex justify-between text-lg font-semibold mb-4">
+            <span>{event.title}</span>
+            <span className="text-blue-400">CAD {event.ticketPrice}$</span>
           </div>
+          
+          {/* Event Date and Time */}
+          <div className="text-sm text-gray-600 mb-4">
+            <p>{new Date(event.eventDate).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}</p>
+            <p>{event.eventTime}</p>
+          </div>
+          
+          <hr className="border-gray-300 mb-4" />
+
+          {/* Ticket Quantity */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm">Tickets</span>
+            <span className="text-sm font-semibold text-gray-800">{ticketQuantity}</span>
+          </div>
+
+          {/* Total Price */}
+          <div className="flex justify-between font-semibold text-lg mb-6">
+            <span>SUB TOTAL</span>
+            <span className="text-blue-800">CAD {totalPrice}$</span>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="text-red-600 text-sm mb-4">
+              {error}
+            </div>
+          )}
 
           {/* Payment Button */}
           <button
             type="button"
             onClick={createTicket}
-            className="w-full mt-8 p-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-all"
+            className={`w-full p-3 text-white rounded-md ${
+              !details.name || !details.email || !details.contactNo || 
+              !payment.nameOnCard || !payment.cardNumber || !payment.expiryDate || !payment.cvv
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-blue-700 hover:bg-blue-800'
+            }`}
+            disabled={
+              !details.name || !details.email || !details.contactNo || 
+              !payment.nameOnCard || !payment.cardNumber || !payment.expiryDate || !payment.cvv
+            }
           >
             Make Payment
           </button>
