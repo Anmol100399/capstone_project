@@ -39,7 +39,7 @@ export const UserContextProvider = ({ children }) => {
     try {
       const endpoint = isAdmin ? "/admin/login" : "/login";
       const response = await axios.post(
-        `https://memorable-moments.onrender.com${endpoint}`,
+        `https://memorable-moments.onrender.com/${endpoint}`,
         { email, password },
         { withCredentials: true }
       );

@@ -18,7 +18,7 @@ import CreateEvent from "./pages/AddEvent";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLoginPage from "./pages/AdminLoginPage";
 
-axios.defaults.baseURL = "https://memorable-moments.onrender.com/";
+axios.defaults.baseURL = "https://memorable-moments.onrender.com";
 axios.defaults.withCredentials = true;
 
 function App() {
