@@ -16,6 +16,7 @@ import PaymentSummary from "./pages/PaymentSummary";
 import TicketPage from "./pages/TicketPage";
 import CreateEvent from "./pages/AddEvent";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLoginPage from "./pages/AdminLoginPage";
 
 axios.defaults.baseURL = "http://localhost:4000/";
 axios.defaults.withCredentials = true;
@@ -34,6 +35,7 @@ function App() {
           <Route path="/event/:id/ordersummary" element={<OrderSummary />} />
           <Route path="/event/:id/ordersummary/paymentsummary" element={<PaymentSummary />} />
           <Route path="/adminDashboard" element={<AdminDashboard />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
         </Route>
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />

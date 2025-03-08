@@ -12,12 +12,16 @@ export const UserContextProvider = ({ children }) => {
     const checkUserSession = async () => {
       try {
         const response = await axios.get("http://localhost:4000/user", {
-          withCredentials: true,
+          withCredentials: true, // Ensure cookies are sent with the request
         });
         setUser(response.data);
       } catch (err) {
-        setUser(null);
-        setError(err.response?.data?.error || "Failed to fetch user data");
+        // Handle 401 Unauthorized (user not logged in) gracefully
+        if (err.response?.status === 401) {
+          setUser(null); // No user is logged in
+        } else {
+          setError(err.response?.data?.error || "Failed to fetch user data");
+        }
       } finally {
         setLoading(false);
       }
@@ -27,18 +31,25 @@ export const UserContextProvider = ({ children }) => {
   }, []);
 
   const loginUser = async (email, password) => {
+    if (!email || !password) {
+      throw new Error("Email and password are required");
+    }
+  
     try {
       const response = await axios.post(
         "http://localhost:4000/login",
         { email, password },
         { withCredentials: true }
       );
+  
+      if (!response.data) {
+        throw new Error("User not found");
+      }
+  
       setUser(response.data);
       setError(null);
     } catch (err) {
-      setError(
-        err.response?.data?.error || "Login failed. Please check your credentials."
-      );
+      throw new Error(err.response?.data?.error || "Login failed. Please check your credentials.");
     }
   };
 

@@ -23,10 +23,9 @@ export default function LoginPage() {
 
   const handleLogin = async (ev) => {
     ev.preventDefault();
-    console.log("Login button clicked");
 
     try {
-      await loginUser(email, password); // Use loginUser from context
+      await loginUser(email, password);
       alert("Login success");
 
       if (rememberMe) {

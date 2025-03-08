@@ -12,7 +12,7 @@ export default function UserAccountPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">Account Page</h1>
-      <p>Welcome, {user.name}!</p>
+      <p>Welcome, {user.username}!</p>
       <p>Email: {user.email}</p>
     </div>
   );
