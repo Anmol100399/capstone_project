@@ -1,1 +1,4 @@
 node_module
+
+#Secrect Key
+.env
