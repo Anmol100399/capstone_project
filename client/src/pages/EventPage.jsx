@@ -50,7 +50,7 @@ export default function EventPage() {
 
       {event.image && (
         <img
-          src={`http://localhost:4000/${event.image}`}
+          src={`https://memorable-moments.onrender.com/${event.image}`}
           alt={event.title}
           className="w-full rounded-lg object-cover h-80 shadow-md mb-6"
         />

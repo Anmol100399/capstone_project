@@ -12,7 +12,7 @@ export const UserContextProvider = ({ children }) => {
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/user", {
+        const response = await axios.get("https://memorable-moments.onrender.com/user", {
           withCredentials: true, // Ensure cookies are sent
         });
         setUser(response.data); // Set user data
@@ -39,7 +39,7 @@ export const UserContextProvider = ({ children }) => {
     try {
       const endpoint = isAdmin ? "/admin/login" : "/login";
       const response = await axios.post(
-        `http://localhost:4000${endpoint}`,
+        `https://memorable-moments.onrender.com${endpoint}`,
         { email, password },
         { withCredentials: true }
       );
@@ -59,7 +59,7 @@ export const UserContextProvider = ({ children }) => {
   const logoutUser = async () => {
     try {
       await axios.post(
-        "http://localhost:4000/logout",
+        "https://memorable-moments.onrender.com/logout",
         {},
         { withCredentials: true }
       );

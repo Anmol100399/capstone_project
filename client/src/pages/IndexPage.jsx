@@ -103,7 +103,7 @@ export default function IndexPage() {
                     {/* Event Image */}
                     {event.image ? (
                       <img
-                        src={`http://localhost:4000/${event.image}`} // Ensure the correct path
+                        src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
                         alt={event.title}
                         className="w-full h-48 object-cover"
                       />

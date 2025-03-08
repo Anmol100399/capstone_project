@@ -21,7 +21,7 @@ export default function AdminDashboard() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/admin/events", {
+      const response = await axios.get("https://memorable-moments.onrender.com/admin/events", {
         withCredentials: true, // Ensure cookies are sent with the request
       });
       setEvents(response.data);
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const handleApprove = async (eventId) => {
     try {
       await axios.post(
-        `http://localhost:4000/event/${eventId}/approve`,
+        `https://memorable-moments.onrender.com/event/${eventId}/approve`,
         {},
         { withCredentials: true }
       );
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
     }
     try {
       await axios.post(
-        `http://localhost:4000/event/${eventId}/reject`,
+        `https://memorable-moments.onrender.com/event/${eventId}/reject`,
         { rejectionReason },
         { withCredentials: true }
       );
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
             {/* Event Image */}
             {event.image ? (
               <img
-                src={`http://localhost:4000/${event.image}`} // Ensure the correct path
+                src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
                 alt={event.title}
                 className="w-full h-48 object-cover"
               />

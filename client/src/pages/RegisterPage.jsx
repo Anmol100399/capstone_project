@@ -27,7 +27,7 @@ export default function RegisterPage() {
     console.log("Request Payload:", payload); // Log the payload
 
     try {
-      const response = await axios.post("http://localhost:4000/register", payload);
+      const response = await axios.post("https://memorable-moments.onrender.com/register", payload);
       if (response.status === 201) {
         alert("Registration Successful");
         setRedirect(true);

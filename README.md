@@ -42,6 +42,6 @@ Introducing our Event Management System, a solution developed as part of our fin
       **ems/client:** npm run dev
 
 **The application should now be running. You can access it at http://localhost:5173**<br>
-**The Server is running on http://localhost:4000**
+**The Server is running on https://memorable-moments.onrender.com**
 
 <h1>Thank You</h1>
