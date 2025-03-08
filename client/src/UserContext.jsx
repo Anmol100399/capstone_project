@@ -8,15 +8,15 @@ export const UserContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Check user session on app load
   useEffect(() => {
     const checkUserSession = async () => {
       try {
         const response = await axios.get("http://localhost:4000/user", {
-          withCredentials: true, // Ensure cookies are sent with the request
+          withCredentials: true, // Ensure cookies are sent
         });
-        setUser(response.data);
+        setUser(response.data); // Set user data
       } catch (err) {
-        // Handle 401 Unauthorized (user not logged in) gracefully
         if (err.response?.status === 401) {
           setUser(null); // No user is logged in
         } else {
@@ -30,29 +30,32 @@ export const UserContextProvider = ({ children }) => {
     checkUserSession();
   }, []);
 
-  const loginUser = async (email, password) => {
+  // Login function for both regular users and admins
+  const loginUser = async (email, password, isAdmin = false) => {
     if (!email || !password) {
       throw new Error("Email and password are required");
     }
-  
+
     try {
+      const endpoint = isAdmin ? "/admin/login" : "/login";
       const response = await axios.post(
-        "http://localhost:4000/login",
+        `http://localhost:4000${endpoint}`,
         { email, password },
         { withCredentials: true }
       );
-  
+
       if (!response.data) {
         throw new Error("User not found");
       }
-  
-      setUser(response.data);
+
+      setUser(response.data); // Update user in context
       setError(null);
     } catch (err) {
       throw new Error(err.response?.data?.error || "Login failed. Please check your credentials.");
     }
   };
 
+  // Logout function
   const logoutUser = async () => {
     try {
       await axios.post(
@@ -60,12 +63,10 @@ export const UserContextProvider = ({ children }) => {
         {},
         { withCredentials: true }
       );
-      setUser(null);
+      setUser(null); // Clear user data
       setError(null);
     } catch (err) {
-      setError(
-        err.response?.data?.error || "Logout failed. Please try again."
-      );
+      setError(err.response?.data?.error || "Logout failed. Please try again.");
     }
   };
 

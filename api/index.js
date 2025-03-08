@@ -96,6 +96,16 @@ app.get("/test", (req, res) => {
    }
  });
 
+ app.get("/admin/events", isAdmin, async (req, res) => {
+   try {
+     const events = await Event.find(); // Fetch all events
+     res.json(events);
+   } catch (error) {
+     console.error("Failed to fetch events:", error);
+     res.status(500).json({ error: "Failed to fetch events" });
+   }
+ });
+
  // Admin Dashboard Route
 app.get("/admin/dashboard", isAdmin, (req, res) => {
    res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
@@ -292,32 +302,24 @@ app.delete("/event/:eventId", async (req, res) => {
 app.post("/admin/login", async (req, res) => {
    const { email, password } = req.body;
  
-   if (!email || !password) {
-     return res.status(422).json({ error: "Email and password are required" });
-   }
- 
    try {
-     // Find the admin user
      const adminDoc = await UserModel.findOne({ email, role: "admin" });
- 
      if (!adminDoc) {
        return res.status(404).json({ error: "Admin not found" });
      }
  
-     // Check if the password is correct
      const passOk = bcrypt.compareSync(password, adminDoc.password);
      if (!passOk) {
        return res.status(401).json({ error: "Invalid password" });
      }
  
-     // Generate JWT token for admin
+     // Generate JWT token
      jwt.sign(
        { email: adminDoc.email, id: adminDoc._id, role: adminDoc.role },
        jwtSecret,
        {},
        (err, token) => {
          if (err) {
-           console.error("JWT error:", err);
            return res.status(500).json({ error: "Failed to generate token" });
          }
          // Set token in cookie and send admin data
@@ -325,8 +327,7 @@ app.post("/admin/login", async (req, res) => {
        }
      );
    } catch (e) {
-     console.error("Admin login error:", e);
-     res.status(500).json({ error: "Admin login failed", details: e.message });
+     res.status(500).json({ error: "Admin login failed" });
    }
  });
 

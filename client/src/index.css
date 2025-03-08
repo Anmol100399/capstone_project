@@ -24,7 +24,7 @@ input.input-et{
 
 .custom-list {
   list-style-type: none;
-  padding-left: 2.0em; 
+  padding-left: 1.0em; 
 }
 
 .custom-list li:before {

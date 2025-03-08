@@ -10,13 +10,20 @@ export default function AdminDashboard() {
   const [selectedEventId, setSelectedEventId] = useState(null);
   const navigate = useNavigate();
 
+  // Redirect if the user is not an admin
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/admin/login" />;
+  }
+
   useEffect(() => {
     fetchEvents();
   }, []);
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/admin/events");
+      const response = await axios.get("http://localhost:4000/admin/events", {
+        withCredentials: true, // Ensure cookies are sent with the request
+      });
       setEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
@@ -25,7 +32,11 @@ export default function AdminDashboard() {
 
   const handleApprove = async (eventId) => {
     try {
-      await axios.post(`http://localhost:4000/event/${eventId}/approve`);
+      await axios.post(
+        `http://localhost:4000/event/${eventId}/approve`,
+        {},
+        { withCredentials: true }
+      );
       fetchEvents(); // Refresh the list after approval
     } catch (error) {
       console.error("Failed to approve event:", error);
@@ -38,9 +49,11 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      await axios.post(`http://localhost:4000/event/${eventId}/reject`, {
-        rejectionReason,
-      });
+      await axios.post(
+        `http://localhost:4000/event/${eventId}/reject`,
+        { rejectionReason },
+        { withCredentials: true }
+      );
       setRejectionReason(""); // Clear the reason
       setSelectedEventId(null); // Close the modal
       fetchEvents(); // Refresh the list after rejection
