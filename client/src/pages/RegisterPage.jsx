@@ -48,11 +48,11 @@ export default function RegisterPage() {
         <div className="flex flex-col gap-3">
           <div className="text-3xl font-black">Welcome to</div>
           <div>
-            <img src="../src/assets/logo.png" alt="" className="w-48" />
+            <img src="/assets/logo.png" alt="" className="w-48" />
           </div>
         </div>
         <div className="ml-48 w-80 mt-6">
-          <img src="../src/assets/signuppic.svg" alt="" className="w-full" />
+          <img src="/assets/signuppic.svg" alt="" className="w-full" />
         </div>
       </div>
       <div className="bg-white w-full sm:w-full md:w-1/2 lg:w-1/3 px-7 py-7 rounded-xl justify-center align-middle">
@@ -112,22 +112,30 @@ export default function RegisterPage() {
               Create Account
             </button>
           </div>
-          <div className="container2">
-            <div className="w-full h-full p-1">
-              <Link to={"/login"}>
-                <button type="submit" className="text-black cursor-pointer rounded w-full h-full font-bold">
+
+          <div className="container2 w-full max-w-md mx-auto">
+            <div className="w-full p-1">
+              <Link to={'/login'}>
+                <button
+                  type="submit"
+                  className=" text-black cursor-pointer rounded w-full py-2 font-bold border border-gray-300"
+                >
                   Log In
                 </button>
               </Link>
             </div>
-            <div className="w-full h-full p-1">
-              <Link to={"/register"}>
-                <button type="submit" className="text-white cursor-pointer rounded w-full h-full bg-primary font-bold">
+            <div className="w-full p-1">
+              <Link to={'/register'}>
+                <button
+                  type="submit"
+                  className="text-white cursor-pointer rounded w-full py-2 bg-primary font-bold"
+                >
                   Sign Up
                 </button>
               </Link>
             </div>
           </div>
+
           <Link to={"/"} className="">
             <button className="secondary">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">

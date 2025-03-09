@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:5173", // Allow requests from this origin
+    origin: "https://memorable-moments.vercel.app" , // Allow requests from this origin
   })
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the "uploads" folder

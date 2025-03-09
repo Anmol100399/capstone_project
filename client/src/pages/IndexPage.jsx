@@ -53,10 +53,10 @@ export default function IndexPage() {
 
   // Hero Image Carousel
   const heroImages = [
-    "../src/assets/Image0.jpg",
-    "../src/assets/Image1.jpeg",
-    "../src/assets/Image2.jpeg",
-    "../src/assets/Image3.jpeg",
+    "/assets/Image0.jpg",
+    "/assets/Image1.jpeg",
+    "/assets/Image2.jpeg",
+    "/assets/Image3.jpeg",
   ];
 
   return (
@@ -109,7 +109,7 @@ export default function IndexPage() {
                       />
                     ) : (
                       <img
-                        src="../src/assets/event.jpg" // Default image
+                        src="/assets/event.jpg" // Default image
                         alt="Default Event"
                         className="w-full h-50 object-cover"
                       />

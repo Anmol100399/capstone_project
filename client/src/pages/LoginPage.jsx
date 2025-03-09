@@ -85,26 +85,39 @@ export default function LoginPage() {
               <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(prev => !prev)} />
               Remember Me
             </div>
-            <div>
-              <Link to={'/forgotpassword'}>
-                Forgot Password ?
+          </div>
+          <div className="w-full flex flex-col items-end mt-4">
+            <div className="w-full">
+              <button type="submit" className="primary w-full">
+                Log In
+              </button>
+            </div>
+            <div className="mt-2">
+              <Link to={'/forgotpassword'} className="text-blue-600 hover:underline">
+                Forgot Password?
               </Link>
             </div>
           </div>
 
-          <div className="w-full py-4">
-            <button type="submit" className="primary w-full"> Log In </button>
-          </div>
-
-          <div className="container2 ">
-            <div className="w-full h-full p-1">
+          <div className="container2 w-full max-w-md mx-auto">
+            <div className="w-full p-1">
               <Link to={'/login'}>
-                <button type="submit" className="text-white cursor-pointer rounded w-full h-full bg-primary font-bold" > Log In</button>
+                <button
+                  type="submit"
+                  className="text-white cursor-pointer rounded w-full py-2 bg-primary font-bold"
+                >
+                  Log In
+                </button>
               </Link>
             </div>
-            <div className="w-full h-full p-1">
+            <div className="w-full p-1">
               <Link to={'/register'}>
-                <button type="submit" className="text-black cursor-pointer rounded w-full h-full font-bold" > Sign Up</button>
+                <button
+                  type="submit"
+                  className="text-black cursor-pointer rounded w-full py-2 font-bold border border-gray-300"
+                >
+                  Sign Up
+                </button>
               </Link>
             </div>
           </div>
@@ -124,12 +137,12 @@ export default function LoginPage() {
         <div className='flex flex-col -ml-96 gap-3'>
           <div className='text-3xl font-black'>Welcome to</div>
           <div>
-            <img src="../src/assets/logo.png" alt="" className="w-48"/>
+            <img src="/assets/logo.png" alt="" className="w-48"/>
           </div>
         </div>
 
         <div className="-ml-48 w-80 mt-12">
-          <img src="../src/assets/signinpic.svg" alt="" className='w-full'/>
+          <img src="/assets/signinpic.svg" alt="" className='w-full'/>
         </div>   
       </div>
     </div>
