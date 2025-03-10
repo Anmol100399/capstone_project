@@ -21,12 +21,20 @@ export default function AdminDashboard() {
 
   const fetchEvents = async () => {
     try {
+      const token = localStorage.getItem('token'); // Get the token from localStorage
       const response = await axios.get("https://memorable-moments.onrender.com/admin/events", {
         withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token in the Authorization header
+        },
       });
       setEvents(response.data);
     } catch (error) {
-      console.error("Failed to fetch events:", error);
+      console.error("Failed to fetch events:", {
+        message: error.message,
+        response: error.response ? error.response.data : null,
+        status: error.response ? error.response.status : null,
+      });
     }
   };
 
