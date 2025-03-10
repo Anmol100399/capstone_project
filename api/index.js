@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: " * ",   // Allow requests from main origin
+    origin: ["https://memorable-moments.vercel.app", "https://memorable-moments.vercel.app/admin/login"],
   })
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the "uploads" folder
