@@ -103,14 +103,14 @@ app.get("/admin/dashboard", isAdmin, (req, res) => {
 
 // Get All Events for Admin Dashboard
 app.get("/admin/events", isAdmin, async (req, res) => {
-  try {
-    const events = await Event.find(); // Fetch all events
-    res.json(events);
-  } catch (error) {
-    console.error("Failed to fetch events:", error);
-    res.status(500).json({ error: "Failed to fetch events" });
-  }
-});
+   try {
+     const events = await Event.find(); // Fetch all events
+     res.json(events);
+   } catch (error) {
+     console.error("Failed to fetch events:", error);
+     res.status(500).json({ error: "Failed to fetch events" });
+   }
+ });
 
 // User Login
 app.post("/login", async (req, res) => {
