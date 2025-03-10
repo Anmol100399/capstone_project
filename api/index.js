@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const path = require("path");
+const bcrypt = require("bcryptjs"); // Import bcrypt at the top
+const jwt = require("jsonwebtoken"); // Import jwt at the top
 
 // Models
 const UserModel = require("./models/User");
@@ -14,7 +16,7 @@ const Ticket = require("./models/Ticket");
 const app = express();
 
 // Constants
-const bcryptSalt = bcrypt.genSaltSync(10);
+const bcryptSalt = bcrypt.genSaltSync(10); // Now bcrypt is initialized
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {
   console.error("JWT_SECRET is not defined in .env file");
@@ -29,7 +31,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "https://memorable-moments.vercel.app" , // Allow requests from main origin
+    origin: "https://memorable-moments.vercel.app", // Allow requests from main origin
   })
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the "uploads" folder
@@ -56,63 +58,50 @@ const upload = multer({ storage });
 
 // Test Route
 app.get("/test", (req, res) => {
-   res.json("Server is running");
- });
- 
- // User Registration
- app.post("/register", async (req, res) => {
-   const { username, email, password } = req.body;
-   if (!username || !email || !password) {
-     return res.status(422).json({ error: "All fields are required" });
-   }
- 
-   try {
-     // Check if email or username already exists
-     const existingUser = await UserModel.findOne({ $or: [{ email }, { username }] });
-     if (existingUser) {
-       return res.status(409).json({ error: "Email or username already exists" });
-     }
- 
-     // Hash the password
-     const hashedPassword = bcrypt.hashSync(password, bcryptSalt);
- 
-     // Create new user
-     const userDoc = await UserModel.create({
-       username, 
-       email,
-       password: hashedPassword,
-     });
- 
-     res.status(201).json(userDoc);
-   } catch (e) {
-     console.error("Registration error:", e);
-     res.status(500).json({
-       error: "Registration failed",
-       details: e.message,
-       stack: e.stack, // Include the stack trace for debugging
-     });
-   }
- });
+  res.json("Server is running");
+});
 
- app.get("/admin/events", isAdmin, async (req, res) => {
-   try {
-     const events = await Event.find(); // Fetch all events
-     res.json(events);
-   } catch (error) {
-     console.error("Failed to fetch events:", error);
-     res.status(500).json({ error: "Failed to fetch events" });
-   }
- });
+// User Registration
+app.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
+    return res.status(422).json({ error: "All fields are required" });
+  }
 
- // Admin Dashboard Route
+  try {
+    // Check if email or username already exists
+    const existingUser = await UserModel.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(409).json({ error: "Email or username already exists" });
+    }
+
+    // Hash the password
+    const hashedPassword = bcrypt.hashSync(password, bcryptSalt);
+
+    // Create new user
+    const userDoc = await UserModel.create({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    res.status(201).json(userDoc);
+  } catch (e) {
+    console.error("Registration error:", e);
+    res.status(500).json({
+      error: "Registration failed",
+      details: e.message,
+      stack: e.stack, // Include the stack trace for debugging
+    });
+  }
+});
+
+// Admin Dashboard Route
 app.get("/admin/dashboard", isAdmin, (req, res) => {
-   res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
- });
+  res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
+});
 
 // User Login
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -135,7 +124,7 @@ app.post("/login", async (req, res) => {
     // Generate JWT token
     jwt.sign(
       { email: user.email, id: user._id },
-      process.env.JWT_SECRET,
+      jwtSecret,
       {},
       (err, token) => {
         if (err) {
@@ -180,17 +169,17 @@ app.post("/logout", (req, res) => {
 
 // Create Event
 app.post("/createEvent", upload.single("image"), async (req, res) => {
-   try {
-     const eventData = req.body;
-     eventData.image = req.file ? req.file.path : "";
-     const newEvent = new Event(eventData);
-     await newEvent.save();
-     res.status(201).json(newEvent);
-   } catch (error) {
-     console.error("Error creating event:", error);
-     res.status(500).json({ error: "Failed to save the event to MongoDB" });
-   }
- });
+  try {
+    const eventData = req.body;
+    eventData.image = req.file ? req.file.path : "";
+    const newEvent = new Event(eventData);
+    await newEvent.save();
+    res.status(201).json(newEvent);
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ error: "Failed to save the event to MongoDB" });
+  }
+});
 
 // Get All Events
 app.get("/createEvent", async (req, res) => {
@@ -301,36 +290,36 @@ app.delete("/event/:eventId", async (req, res) => {
 
 // Admin Login Route
 app.post("/admin/login", async (req, res) => {
-   const { email, password } = req.body;
- 
-   try {
-     const adminDoc = await UserModel.findOne({ email, role: "admin" });
-     if (!adminDoc) {
-       return res.status(404).json({ error: "Admin not found" });
-     }
- 
-     const passOk = bcrypt.compareSync(password, adminDoc.password);
-     if (!passOk) {
-       return res.status(401).json({ error: "Invalid password" });
-     }
- 
-     // Generate JWT token
-     jwt.sign(
-       { email: adminDoc.email, id: adminDoc._id, role: adminDoc.role },
-       jwtSecret,
-       {},
-       (err, token) => {
-         if (err) {
-           return res.status(500).json({ error: "Failed to generate token" });
-         }
-         // Set token in cookie and send admin data
-         res.cookie("token", token).json(adminDoc.toObject());
-       }
-     );
-   } catch (e) {
-     res.status(500).json({ error: "Admin login failed" });
-   }
- });
+  const { email, password } = req.body;
+
+  try {
+    const adminDoc = await UserModel.findOne({ email, role: "admin" });
+    if (!adminDoc) {
+      return res.status(404).json({ error: "Admin not found" });
+    }
+
+    const passOk = bcrypt.compareSync(password, adminDoc.password);
+    if (!passOk) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    // Generate JWT token
+    jwt.sign(
+      { email: adminDoc.email, id: adminDoc._id, role: adminDoc.role },
+      jwtSecret,
+      {},
+      (err, token) => {
+        if (err) {
+          return res.status(500).json({ error: "Failed to generate token" });
+        }
+        // Set token in cookie and send admin data
+        res.cookie("token", token).json(adminDoc.toObject());
+      }
+    );
+  } catch (e) {
+    res.status(500).json({ error: "Admin login failed" });
+  }
+});
 
 // Ticket Routes
 
@@ -367,22 +356,22 @@ app.get("/tickets", async (req, res) => {
 
 // Get User Data
 app.get("/user", (req, res) => {
-   const { token } = req.cookies;
-   if (!token) {
-     return res.status(401).json({ error: "Unauthorized" });
-   }
- 
-   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-     if (err) {
-       return res.status(401).json({ error: "Invalid token" });
-     }
-     const user = await UserModel.findById(userData.id);
-     if (!user) {
-       return res.status(404).json({ error: "User not found" });
-     }
-     res.json({ id: user._id, name: user.name, email: user.email });
-   });
- });
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    const user = await UserModel.findById(userData.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ id: user._id, name: user.name, email: user.email });
+  });
+});
 
 // Get Tickets by User ID
 app.get("/tickets/user/:userId", async (req, res) => {
