@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const fetchEvents = async () => {
     try {
       const response = await axios.get("https://memorable-moments.onrender.com/admin/events", {
-        withCredentials: true, // Ensure cookies are sent with the request
+        withCredentials: true,
       });
       setEvents(response.data);
     } catch (error) {
