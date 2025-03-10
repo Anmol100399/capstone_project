@@ -12,7 +12,7 @@ export const UserContextProvider = ({ children }) => {
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        const response = await axios.get("https://memorable-moments.onrender.com/user", {
+        const response = await axios.get("https://memorable-moments.onrender.com/profile", {
           withCredentials: true, // Ensure cookies are sent
         });
         setUser(response.data); // Set user data
@@ -35,19 +35,19 @@ export const UserContextProvider = ({ children }) => {
     if (!email || !password) {
       throw new Error("Email and password are required");
     }
-  
+
     try {
       const endpoint = isAdmin ? "/admin/login" : "/login";
       const response = await axios.post(
-        `https://memorable-moments.onrender.com/${endpoint}`,
+        `https://memorable-moments.onrender.com${endpoint}`,
         { email, password },
         { withCredentials: true }
       );
-  
+
       if (!response.data) {
         throw new Error("User not found");
       }
-  
+
       setUser(response.data); // Update user in context
       setError(null);
     } catch (err) {

@@ -10,7 +10,6 @@ export default function AdminDashboard() {
   const [selectedEventId, setSelectedEventId] = useState(null);
   const navigate = useNavigate();
 
-  // Redirect if the user is not an admin
   if (!user || user.role !== "admin") {
     return <Navigate to="/admin/login" />;
   }
@@ -21,8 +20,8 @@ export default function AdminDashboard() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("https://memorable-moments.onrender.com/admin/events", {
-        withCredentials: true, // Ensure cookies are sent with the request
+      const response = await axios.get("/admin/events", {
+        withCredentials: true,
       });
       setEvents(response.data);
     } catch (error) {
@@ -33,11 +32,11 @@ export default function AdminDashboard() {
   const handleApprove = async (eventId) => {
     try {
       await axios.post(
-        `https://memorable-moments.onrender.com/event/${eventId}/approve`,
+        `/event/${eventId}/approve`,
         {},
         { withCredentials: true }
       );
-      fetchEvents(); // Refresh the list after approval
+      fetchEvents();
     } catch (error) {
       console.error("Failed to approve event:", error);
     }
@@ -50,20 +49,20 @@ export default function AdminDashboard() {
     }
     try {
       await axios.post(
-        `https://memorable-moments.onrender.com/event/${eventId}/reject`,
+        `/event/${eventId}/reject`,
         { rejectionReason },
         { withCredentials: true }
       );
-      setRejectionReason(""); // Clear the reason
-      setSelectedEventId(null); // Close the modal
-      fetchEvents(); // Refresh the list after rejection
+      setRejectionReason("");
+      setSelectedEventId(null);
+      fetchEvents();
     } catch (error) {
       console.error("Failed to reject event:", error);
     }
   };
 
   const handleViewDetails = (eventId) => {
-    navigate(`/event/${eventId}`); // Navigate to the event details page
+    navigate(`/event/${eventId}`);
   };
 
   return (
@@ -76,16 +75,15 @@ export default function AdminDashboard() {
             key={event._id}
             className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
           >
-            {/* Event Image */}
             {event.image ? (
               <img
-                src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
+                src={`https://memorable-moments.onrender.com/${event.image}`}
                 alt={event.title}
                 className="w-full h-48 object-cover"
               />
             ) : (
               <img
-                src="../src/assets/event.jpg" // Default image
+                src="../src/assets/event.jpg"
                 alt="Default Event"
                 className="w-full h-50 object-cover"
               />
@@ -138,7 +136,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Rejection Reason Modal */}
       {selectedEventId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-96">

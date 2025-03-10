@@ -1,25 +1,24 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../UserContext"; // Import UserContext
+import { UserContext } from "../UserContext";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { loginUser } = useContext(UserContext); // Use loginUser from UserContext
+  const { loginUser } = useContext(UserContext);
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      // Use loginUser from UserContext
       await loginUser(email, password, true); // Pass isAdmin: true for admin login
-      navigate("/adminDashboard"); // Redirect to admin dashboard
+      navigate("/adminDashboard");
     } catch (err) {
-      console.error("Admin login error:", err); // Debugging log
-      setError(err.message || "Admin login failed"); // Set error message
+      console.error("Admin login error:", err);
+      setError(err.message || "Admin login failed");
     }
   };
 

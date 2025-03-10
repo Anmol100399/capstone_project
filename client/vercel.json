@@ -2,14 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "build/**",
-      "use": "@vercel/static"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "index.html"
+      "source": "/api/(.*)",
+      "destination": "https://memorable-moments.onrender.com"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

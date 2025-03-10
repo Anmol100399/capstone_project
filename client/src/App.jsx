@@ -40,7 +40,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} /> {/* Moved outside */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
       </Routes>
     </UserContextProvider>
   );

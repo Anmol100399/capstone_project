@@ -112,6 +112,9 @@ app.get("/admin/dashboard", isAdmin, (req, res) => {
  });
 
 // User Login
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -120,21 +123,21 @@ app.post("/login", async (req, res) => {
   }
 
   try {
-    const userDoc = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email });
 
-    if (!userDoc) {
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const passOk = bcrypt.compareSync(password, userDoc.password);
+    const passOk = bcrypt.compareSync(password, user.password);
     if (!passOk) {
       return res.status(401).json({ error: "Invalid password" });
     }
 
     // Generate JWT token
     jwt.sign(
-      { email: userDoc.email, id: userDoc._id },
-      jwtSecret,
+      { email: user.email, id: user._id },
+      process.env.JWT_SECRET,
       {},
       (err, token) => {
         if (err) {
@@ -142,7 +145,7 @@ app.post("/login", async (req, res) => {
           return res.status(500).json({ error: "Failed to generate token" });
         }
         // Set token in cookie and send user data
-        res.cookie("token", token).json(userDoc.toObject());
+        res.cookie("token", token).json(user.toObject());
       }
     );
   } catch (e) {
