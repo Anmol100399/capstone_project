@@ -101,6 +101,17 @@ app.get("/admin/dashboard", isAdmin, (req, res) => {
   res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
 });
 
+// Get All Events for Admin Dashboard
+app.get("/admin/events", isAdmin, async (req, res) => {
+  try {
+    const events = await Event.find(); // Fetch all events
+    res.json(events);
+  } catch (error) {
+    console.error("Failed to fetch events:", error);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
 // User Login
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -293,15 +304,25 @@ app.post("/admin/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    console.log("Admin login request:", { email, password }); // Debugging log
+
+    // Find the admin user by email and role
     const adminDoc = await UserModel.findOne({ email, role: "admin" });
     if (!adminDoc) {
+      console.log("Admin not found"); // Debugging log
       return res.status(404).json({ error: "Admin not found" });
     }
 
+    console.log("Admin found:", adminDoc); // Debugging log
+
+    // Compare the provided password with the hashed password in the database
     const passOk = bcrypt.compareSync(password, adminDoc.password);
     if (!passOk) {
+      console.log("Invalid password"); // Debugging log
       return res.status(401).json({ error: "Invalid password" });
     }
+
+    console.log("Password is valid"); // Debugging log
 
     // Generate JWT token
     jwt.sign(
@@ -310,13 +331,17 @@ app.post("/admin/login", async (req, res) => {
       {},
       (err, token) => {
         if (err) {
+          console.error("JWT error:", err); // Debugging log
           return res.status(500).json({ error: "Failed to generate token" });
         }
+        console.log("Token generated:", token); // Debugging log
+
         // Set token in cookie and send admin data
         res.cookie("token", token).json(adminDoc.toObject());
       }
     );
   } catch (e) {
+    console.error("Admin login error:", e); // Debugging log
     res.status(500).json({ error: "Admin login failed" });
   }
 });
