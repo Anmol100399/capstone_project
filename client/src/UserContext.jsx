@@ -35,7 +35,7 @@ export const UserContextProvider = ({ children }) => {
     if (!email || !password) {
       throw new Error("Email and password are required");
     }
-
+  
     try {
       const endpoint = isAdmin ? "/admin/login" : "/login";
       const response = await axios.post(
@@ -43,11 +43,11 @@ export const UserContextProvider = ({ children }) => {
         { email, password },
         { withCredentials: true }
       );
-
+  
       if (!response.data) {
         throw new Error("User not found");
       }
-
+  
       setUser(response.data); // Update user in context
       setError(null);
     } catch (err) {

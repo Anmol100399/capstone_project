@@ -48,9 +48,9 @@ export default function TicketPage() {
   };
 
   return (
-    <div className="flex flex-col flex-grow p-8 bg-gray-50 min-h-screen">
+    <div className="flex flex-col flex-grow p-4 sm:p-8 bg-gray-50 min-h-screen">
       {/* Back Button */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         {/* Pass event ID and ticketQuantity to PaymentSummary */}
         <Link
           to={{
@@ -58,7 +58,7 @@ export default function TicketPage() {
             search: `?tickets=${ticketQuantity}`, // Pass ticketQuantity as a query parameter
           }}
         >
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all text-sm sm:text-base">
             <IoMdArrowBack className="w-5 h-5" />
             Back
           </button>
@@ -66,25 +66,28 @@ export default function TicketPage() {
       </div>
 
       {/* Ticket List */}
-      <div className="flex flex-col gap-6 items-center">
+      <div className="flex flex-col gap-4 sm:gap-6 items-center">
         {tickets.map((ticket) => (
-          <div key={ticket._id} className="relative w-full max-w-2xl bg-white shadow-lg rounded-lg overflow-hidden flex border border-gray-300">
+          <div
+            key={ticket._id}
+            className="relative w-full max-w-2xl bg-white shadow-lg rounded-lg overflow-hidden flex flex-col sm:flex-row border border-gray-300"
+          >
             {/* Left Section: QR Code */}
-            <div className="w-1/3 bg-gray-200 flex items-center justify-center p-4">
+            <div className="w-full sm:w-1/3 bg-gray-200 flex items-center justify-center p-4">
               <img
                 src={ticket.ticketDetails.qr}
                 alt="QR Code"
-                className="w-full h-auto object-contain"
+                className="w-32 h-32 sm:w-full sm:h-auto object-contain"
               />
             </div>
 
             {/* Right Section: Ticket Details */}
-            <div className="w-2/3 p-6 flex flex-col justify-between">
+            <div className="w-full sm:w-2/3 p-4 sm:p-6 flex flex-col justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                   {ticket.ticketDetails.eventname.toUpperCase()}
                 </h2>
-                <p className="text-lg text-gray-600 mt-2">
+                <p className="text-sm sm:text-lg text-gray-600 mt-2">
                   {new Date(ticket.ticketDetails.eventdate).toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
@@ -93,21 +96,21 @@ export default function TicketPage() {
                     timeZone: "UTC",
                   })}
                 </p>
-                <p className="text-lg text-gray-600">
+                <p className="text-sm sm:text-lg text-gray-600">
                   {ticket.ticketDetails.eventtime}
                 </p>
               </div>
 
-              <div className="flex justify-between mt-4">
+              <div className="flex flex-col sm:flex-row justify-between mt-4 gap-2 sm:gap-0">
                 <div>
-                  <p className="text-sm text-gray-500">Name:</p>
-                  <p className="text-lg font-semibold text-gray-800">
+                  <p className="text-xs sm:text-sm text-gray-500">Name:</p>
+                  <p className="text-sm sm:text-lg font-semibold text-gray-800">
                     {ticket.ticketDetails.name.toUpperCase()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Price:</p>
-                  <p className="text-lg font-semibold text-gray-800">
+                  <p className="text-xs sm:text-sm text-gray-500">Price:</p>
+                  <p className="text-sm sm:text-lg font-semibold text-gray-800">
                     CAD {ticket.ticketDetails.ticketprice}$
                   </p>
                 </div>
@@ -115,9 +118,9 @@ export default function TicketPage() {
 
               <button
                 onClick={() => deleteTicket(ticket._id)}
-                className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all w-full"
+                className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all w-full text-sm sm:text-base"
               >
-                <RiDeleteBinLine className="w-5 h-5" />
+                <RiDeleteBinLine className="w-4 h-4 sm:w-5 sm:h-5" />
                 Delete Ticket
               </button>
             </div>
@@ -127,7 +130,7 @@ export default function TicketPage() {
 
       {/* No Tickets Message */}
       {tickets.length === 0 && (
-        <div className="text-center text-gray-500 mt-8">
+        <div className="text-center text-gray-500 mt-8 text-sm sm:text-base">
           No tickets found. Create a new ticket to see it here!
         </div>
       )}

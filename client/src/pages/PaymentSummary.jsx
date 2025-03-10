@@ -40,8 +40,9 @@ export default function PaymentSummary() {
 
   useEffect(() => {
     if (!id) return;
+
     axios
-      .get(`/event/${id}/ordersummary/paymentsummary`)
+      .get(`/event/${id}`) // Correct endpoint
       .then((response) => {
         setEvent(response.data);
         setTicketDetails((prevTicketDetails) => ({
@@ -57,7 +58,12 @@ export default function PaymentSummary() {
         }));
       })
       .catch((error) => {
-        console.error("Error fetching events:", error);
+        if (error.response && error.response.status === 404) {
+          setError("Event not found. Please check the event ID.");
+        } else {
+          setError("An error occurred while fetching event details.");
+        }
+        console.error("Error fetching event:", error);
       });
   }, [id]);
 
@@ -150,29 +156,44 @@ export default function PaymentSummary() {
     }
   };
 
-  if (!event) return '';
+  if (error) {
+    return <div className="text-center py-10 text-lg text-red-600">{error}</div>;
+  }
+
+  if (!event) {
+    return <div className="text-center py-10 text-lg text-gray-600">Loading event details...</div>;
+  }
 
   // Calculate total price
   const totalPrice = event.ticketPrice * ticketQuantity;
+
+  // Format the event date correctly (fix for timezone issue)
+  const formattedEventDate = new Date(event.eventDate).toLocaleDateString("en-US", {
+    timeZone: 'UTC', // Ensure the date is treated as UTC
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <>
       <div>
         <Link to={'/event/' + event._id + '/ordersummary'}>
           <button
-            className="inline-flex mt-12 gap-2 p-3 ml-12 bg-gray-100 justify-center items-center text-blue-700 font-bold rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition-all"
+            className="inline-flex mt-12 gap-2 p-3 ml-4 sm:ml-12 bg-gray-100 justify-center items-center text-blue-700 font-bold rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition-all"
           >
             <IoMdArrowBack className="w-6 h-6" />
-            Back
+            <span className="text-sm sm:text-base">Back</span>
           </button>
         </Link>
       </div>
-      <div className="flex mt-8 ml-12 space-x-20">
+      <div className="flex flex-col lg:flex-row mt-8 mx-4 sm:mx-12 space-y-8 lg:space-y-0 lg:space-x-20">
         {/* Left Section - Your Details and Payment Option */}
-        <div className="w-3/5 space-y-8">
+        <div className="w-full lg:w-3/5 space-y-8">
           {/* Your Details Section */}
-          <div className="bg-gray-100 shadow-lg p-8 rounded-md">
-            <h2 className="text-2xl font-semibold mb-4">Your Details</h2>
+          <div className="bg-gray-100 shadow-lg p-6 sm:p-8 rounded-md">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4">Your Details</h2>
             <div className="space-y-4">
               <input
                 type="text"
@@ -180,7 +201,7 @@ export default function PaymentSummary() {
                 value={details.name}
                 onChange={handleChangeDetails}
                 placeholder="Name"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
               />
               <input
                 type="email"
@@ -188,7 +209,7 @@ export default function PaymentSummary() {
                 value={details.email}
                 onChange={handleChangeDetails}
                 placeholder="Email"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
               />
               <input
                 type="tel"
@@ -196,18 +217,18 @@ export default function PaymentSummary() {
                 value={details.contactNo}
                 onChange={handleChangeDetails}
                 placeholder="Contact No"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
               />
             </div>
           </div>
 
           {/* Payment Option Section */}
-          <div className="bg-gray-100 shadow-lg p-8 rounded-md">
-            <h2 className="text-2xl font-semibold mb-4">Payment Option</h2>
+          <div className="bg-gray-100 shadow-lg p-6 sm:p-8 rounded-md">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4">Payment Option</h2>
             <div className="space-y-4">
               <button
                 type="button"
-                className="px-8 py-3 text-black bg-blue-100 focus:outline border rounded-sm border-gray-300 w-full"
+                className="px-8 py-3 text-black bg-blue-100 focus:outline border rounded-sm border-gray-300 w-full text-sm sm:text-base"
                 disabled
               >
                 Credit / Debit Card
@@ -218,7 +239,7 @@ export default function PaymentSummary() {
                 value={payment.nameOnCard}
                 onChange={handleChangePayment}
                 placeholder="Name on Card"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
               />
               <input
                 type="text"
@@ -226,7 +247,7 @@ export default function PaymentSummary() {
                 value={payment.cardNumber}
                 onChange={handleChangePayment}
                 placeholder="Card Number"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
               />
               <div className="flex space-x-4">
                 <input
@@ -235,7 +256,7 @@ export default function PaymentSummary() {
                   value={payment.expiryDate}
                   onChange={handleChangePayment}
                   placeholder="Expiry Date (MM/YY)"
-                  className="input-field w-2/3 h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                  className="input-field w-2/3 h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
                 />
                 <input
                   type="text"
@@ -243,7 +264,7 @@ export default function PaymentSummary() {
                   value={payment.cvv}
                   onChange={handleChangePayment}
                   placeholder="CVV"
-                  className="input-field w-1/3 h-12 bg-gray-50 border border-gray-300 rounded-md p-3"
+                  className="input-field w-1/3 h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
                 />
               </div>
             </div>
@@ -251,8 +272,8 @@ export default function PaymentSummary() {
         </div>
 
         {/* Right Section - Order Summary */}
-        <div className="bg-blue-100 w-1/4 p-6 rounded-lg shadow-lg h-fit">
-          <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
+        <div className="w-full lg:w-1/4 bg-blue-100 p-6 rounded-lg shadow-lg h-fit">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Order Summary</h2>
           
           {/* Event Details */}
           <div className="flex justify-between text-lg font-semibold mb-4">
@@ -262,12 +283,7 @@ export default function PaymentSummary() {
           
           {/* Event Date and Time */}
           <div className="text-sm text-gray-600 mb-4">
-            <p>{new Date(event.eventDate).toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}</p>
+            <p>{formattedEventDate}</p> {/* Use the correctly formatted date */}
             <p>{event.eventTime}</p>
           </div>
           

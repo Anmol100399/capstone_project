@@ -8,15 +8,22 @@ export default function OrderSummary() {
   const [event, setEvent] = useState(null);
   const [ticketQuantity, setTicketQuantity] = useState(1); // Default ticket quantity
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!id) return;
+
     axios
-      .get(`/event/${id}/ordersummary`)
+      .get(`/event/${id}`) // Correct endpoint
       .then((response) => {
         setEvent(response.data);
       })
       .catch((error) => {
+        if (error.response && error.response.status === 404) {
+          setError("Event not found. Please check the event ID.");
+        } else {
+          setError("An error occurred while fetching event details.");
+        }
         console.error("Error fetching event:", error);
       });
   }, [id]);
@@ -35,7 +42,13 @@ export default function OrderSummary() {
 
   const totalPrice = (event?.ticketPrice || 0) * ticketQuantity;
 
-  if (!event) return '';
+  if (error) {
+    return <div className="text-center py-10 text-lg text-red-600">{error}</div>;
+  }
+
+  if (!event) {
+    return <div className="text-center py-10 text-lg text-gray-600">Loading event details...</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-6">

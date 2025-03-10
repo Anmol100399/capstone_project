@@ -18,6 +18,7 @@ export default function AdminLoginPage() {
       await loginUser(email, password, true); // Pass isAdmin: true for admin login
       navigate("/adminDashboard"); // Redirect to admin dashboard
     } catch (err) {
+      console.error("Admin login error:", err); // Debugging log
       setError(err.message || "Admin login failed"); // Set error message
     }
   };

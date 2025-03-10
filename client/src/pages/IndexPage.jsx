@@ -12,8 +12,9 @@ export default function IndexPage() {
   // Fetch approved events from the server
   useEffect(() => {
     axios
-      .get("/events?status=Approved") // Fetch only approved events
+      .get("/events?status=Approved")
       .then((response) => {
+        console.log("Fetched events:", response.data); // Debugging log
         setEvents(response.data);
       })
       .catch((error) => {
@@ -24,9 +25,8 @@ export default function IndexPage() {
   // Like functionality
   const handleLike = (eventId) => {
     axios
-      .post(`/event/${eventId}/like`) // Updated endpoint
+      .post(`/event/${eventId}/like`)
       .then((response) => {
-        // Update the likes count in the state
         setEvents((prevEvents) =>
           prevEvents.map((event) =>
             event._id === eventId ? { ...event, likes: response.data.likes } : event
@@ -72,10 +72,9 @@ export default function IndexPage() {
               className="w-full h-full object-cover flex-shrink-0"
             />
           ))}
-          {/* Duplicate images for infinite scroll */}
           {heroImages.map((image, index) => (
             <img
-              key={index + heroImages.length} // To ensure unique key for duplicated images
+              key={index + heroImages.length}
               src={image}
               alt={`Image ${index + 1}`}
               className="w-full h-full object-cover flex-shrink-0"
@@ -93,7 +92,11 @@ export default function IndexPage() {
               const eventDate = new Date(event.eventDate);
               const currentDate = new Date();
 
-              // Check if the event date is in the future or today
+              // Debugging logs
+              console.log("Event Date:", eventDate);
+              console.log("Current Date:", currentDate);
+              console.log("Is Event Date >= Current Date?", eventDate >= currentDate);
+
               if (eventDate >= currentDate) {
                 return (
                   <div
@@ -103,13 +106,13 @@ export default function IndexPage() {
                     {/* Event Image */}
                     {event.image ? (
                       <img
-                        src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
+                        src={`https://memorable-moments.onrender.com/${event.image}`}
                         alt={event.title}
                         className="w-full h-48 object-cover"
                       />
                     ) : (
                       <img
-                        src="/assets/event.jpg" // Default image
+                        src="/assets/event.jpg"
                         alt="Default Event"
                         className="w-full h-50 object-cover"
                       />
@@ -181,7 +184,7 @@ export default function IndexPage() {
               return null;
             })
           ) : (
-            <p className="text-gray-600">No events available.</p>
+            <p className="text-gray-600">No upcoming events available.</p>
           )}
         </div>
       </div>

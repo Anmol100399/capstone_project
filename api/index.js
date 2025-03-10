@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: [ "https://memorable-moments-cv60fvuu7-anmol100399s-projects.vercel.app" , "https://memorable-moments.vercel.app" ] , // Allow requests from this origin
+    origin: "https://memorable-moments.vercel.app" , // Allow requests from main origin
   })
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the "uploads" folder
@@ -179,17 +179,17 @@ app.post("/logout", (req, res) => {
 
 // Create Event
 app.post("/createEvent", upload.single("image"), async (req, res) => {
-  try {
-    const eventData = req.body;
-    eventData.image = req.file ? req.file.path : "";
-    const newEvent = new Event(eventData);
-    await newEvent.save();
-    res.status(201).json(newEvent);
-  } catch (error) {
-    console.error("Error creating event:", error);
-    res.status(500).json({ error: "Failed to save the event to MongoDB" });
-  }
-});
+   try {
+     const eventData = req.body;
+     eventData.image = req.file ? req.file.path : "";
+     const newEvent = new Event(eventData);
+     await newEvent.save();
+     res.status(201).json(newEvent);
+   } catch (error) {
+     console.error("Error creating event:", error);
+     res.status(500).json({ error: "Failed to save the event to MongoDB" });
+   }
+ });
 
 // Get All Events
 app.get("/createEvent", async (req, res) => {

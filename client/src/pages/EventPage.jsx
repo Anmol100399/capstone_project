@@ -38,6 +38,9 @@ export default function EventPage() {
 
   if (!event) return <div className="text-center py-10 text-lg text-gray-600">Loading event details...</div>;
 
+  // Construct the Google Maps URL for directions
+  const mapsUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyC_lsOgWg2zfw3heud44T2xnn-aVRn3KU8&q=${encodeURIComponent(event.location)}`;
+
   return (
     <div className="flex flex-col sm:flex-row mx-auto max-w-5xl p-4 sm:p-6 md:p-10 bg-white shadow-lg rounded-xl mt-6 sm:mt-10">
       {/* Main Content */}
@@ -51,13 +54,15 @@ export default function EventPage() {
         </button>
 
         {/* Event Image */}
-        {event.image && (
-          <img
-            src={`https://memorable-moments.onrender.com/${event.image}`}
-            alt={event.title}
-            className="w-full rounded-lg object-cover h-48 sm:h-64 md:h-80 shadow-md mb-6"
-          />
-        )}
+        <img
+          src={
+            event.image
+              ? `https://memorable-moments.onrender.com/${event.image}` // Use uploaded image if available
+              : "/assets/event.jpg" // Default image if no image is uploaded
+          }
+          alt={event.title}
+          className="w-full rounded-lg object-cover h-48 sm:h-64 md:h-80 shadow-md mb-6"
+        />
 
         {/* Event Title */}
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-4">{event.title}</h1>
@@ -86,9 +91,31 @@ export default function EventPage() {
             <MdLocationPin className="text-red-600 h-5 w-5 sm:h-6 sm:w-6" />
             <div>
               <h3 className="font-semibold text-gray-900 text-sm sm:text-md">Location</h3>
-              <p className="text-gray-700 text-sm sm:text-md">{event.location}</p>
+              <p className="text-gray-700 text-sm sm:text-md">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {event.location}
+                </a>
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Google Maps Embed */}
+        <div className="mb-6">
+          <h3 className="text-lg font-bold text-gray-900 text-center mb-4">Event Location</h3>
+          <iframe
+            title="Event Location"
+            width="100%"
+            height="300"
+            style={{ border: 0 }}
+            src={mapsUrl}
+            allowFullScreen
+          ></iframe>
         </div>
 
         {/* Book Ticket Button (Visible on all screens) */}
@@ -113,14 +140,6 @@ export default function EventPage() {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Event Preview Section (Hidden on Phone Screens) */}
-      <div className="hidden sm:block sm:w-1/3 lg:w-1/4 ml-6 p-4 bg-gray-50 rounded-lg shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Event Preview</h3>
-        <p className="text-sm text-gray-700">
-          This is a preview of the event details. It will only be visible on tablet and desktop screens.
-        </p>
       </div>
     </div>
   );
