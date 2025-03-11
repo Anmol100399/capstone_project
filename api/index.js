@@ -23,10 +23,6 @@ if (!jwtSecret) {
   process.exit(1);
 }
 
-// Middleware
-const isAdmin = require("./middleware/isAdmin");
-
-// Enable CORS for all origins
 app.use(
   cors({
     credentials: true,
