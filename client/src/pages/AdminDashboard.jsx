@@ -1,56 +1,30 @@
-import React, { useContext, useEffect, useState } from "react";
-import { UserContext } from "../UserContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function AdminDashboard() {
-  const { user } = useContext(UserContext);
   const [events, setEvents] = useState([]);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [selectedEventId, setSelectedEventId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-
-  // Redirect if the user is not an admin
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/admin/login" />;
-  }
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
 
   const fetchEvents = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        console.log("Token:", token);
         setError("No token found. Please log in again.");
         setLoading(false);
         return;
       }
 
-      const response = await axios.get(
-        "https://memorable-moments.onrender.com/admin/events",
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("/admin/events", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      console.log("API Response:", response.data); // Debugging: Log the response
       setEvents(response.data);
       setError(null);
     } catch (error) {
-      console.error("Failed to fetch events:", {
-        message: error.message,
-        response: error.response ? error.response.data : null,
-        status: error.response ? error.response.status : null,
-      });
-
+      console.error("Failed to fetch events:", error);
       setError("Failed to fetch events. Please try again later.");
     } finally {
       setLoading(false);
@@ -69,53 +43,47 @@ export default function AdminDashboard() {
           },
         }
       );
-      fetchEvents(); // Refresh the list after approval
+      fetchEvents(); // Refresh the events list
     } catch (error) {
       console.error("Failed to approve event:", error);
-      setError("Failed to approve event. Please try again.");
+      alert("Failed to approve event. Please try again.");
     }
   };
-  
+
   const handleReject = async (eventId) => {
-    if (!rejectionReason) {
-      alert("Please provide a reason for rejection.");
-      return;
-    }
     try {
       const token = localStorage.getItem("token");
       await axios.post(
         `/event/${eventId}/reject`,
-        { rejectionReason },
+        { rejectionReason: "Your reason here" }, // Add a reason for rejection
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setRejectionReason(""); // Clear the reason
-      setSelectedEventId(null); // Close the modal
-      fetchEvents(); // Refresh the list after rejection
+      fetchEvents(); // Refresh the events list
     } catch (error) {
       console.error("Failed to reject event:", error);
-      setError("Failed to reject event. Please try again.");
+      alert("Failed to reject event. Please try again.");
     }
   };
 
-  const handleViewDetails = (eventId) => {
-    navigate(`/event/${eventId}`); // Navigate to the event details page
-  };
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Events</h2>
-  
+
       {loading && <p className="text-gray-600">Loading events...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && events.length === 0 && !error && (
         <p className="text-gray-600">No events found.</p>
       )}
-  
+
       {!loading && events.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
@@ -123,26 +91,12 @@ export default function AdminDashboard() {
               key={event._id}
               className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
             >
-              {event.image ? (
-                <img
-                  src={`https://memorable-moments.onrender.com/${event.image}`}
-                  alt={event.title}
-                  className="w-full h-48 object-cover"
-                />
-              ) : (
-                <img
-                  src="../src/assets/event.jpg"
-                  alt="Default Event"
-                  className="w-full h-48 object-cover"
-                />
-              )}
-  
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {event.title}
                 </h3>
                 <p className="text-gray-600 text-sm mb-4">{event.description}</p>
-  
+
                 <div className="text-sm text-gray-500 mb-4">
                   <strong>Status:</strong>{" "}
                   <span
@@ -165,16 +119,10 @@ export default function AdminDashboard() {
                     Approve
                   </button>
                   <button
-                    onClick={() => setSelectedEventId(event._id)}
+                    onClick={() => handleReject(event._id)}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
                   >
                     Reject
-                  </button>
-                  <button
-                    onClick={() => handleViewDetails(event._id)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                  >
-                    Details
                   </button>
                 </div>
               </div>
@@ -182,34 +130,6 @@ export default function AdminDashboard() {
           ))}
         </div>
       )}
-  
-      {/* Rejection Reason Modal */}
-      {selectedEventId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h3 className="text-xl font-bold mb-4">Rejection Reason</h3>
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full p-2 border rounded-lg mb-4"
-              placeholder="Enter reason for rejection..."
-            />
-            <div className="flex justify-end">
-              <button
-                onClick={() => setSelectedEventId(null)}
-                className="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleReject(selectedEventId)}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  )};
+  );
+}

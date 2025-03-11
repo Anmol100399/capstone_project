@@ -7,9 +7,8 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  // Add the handleAdminLogin function here
   const handleAdminLogin = async (e) => {
-    e.preventDefault(); // Prevent form submission reload
+    e.preventDefault();
     try {
       const response = await axios.post("/admin/login", { email, password });
       const { token } = response.data;

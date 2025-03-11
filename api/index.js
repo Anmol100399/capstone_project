@@ -43,6 +43,28 @@ mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
+  
+// Middleware to check if user is admin
+const isAdmin = (req, res, next) => {
+   const { token } = req.cookies;
+ 
+   if (!token) {
+     return res.status(401).json({ error: "Unauthorized" });
+   }
+ 
+   jwt.verify(token, jwtSecret, {}, (err, userData) => {
+     if (err) {
+       return res.status(401).json({ error: "Invalid token" });
+     }
+ 
+     if (userData.role !== "admin") {
+       return res.status(403).json({ error: "Forbidden: Admin access required" });
+     }
+ 
+     req.user = userData;
+     next();
+   });
+ };
 
 // Multer Configuration for File Uploads
 const storage = multer.diskStorage({
@@ -106,7 +128,7 @@ app.get("/adminDashboard", (req, res) => {
 // Get All Events for Admin Dashboard
 app.get("/admin/events", isAdmin, async (req, res) => {
    try {
-     const events = await Event.find(); // Fetch all events
+     const events = await Event.find();
      res.json(events);
    } catch (error) {
      console.error("Failed to fetch events:", error);
@@ -116,43 +138,37 @@ app.get("/admin/events", isAdmin, async (req, res) => {
 
 // User Login
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(422).json({ error: "Email and password are required" });
-  }
-
-  try {
-    const user = await UserModel.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const passOk = bcrypt.compareSync(password, user.password);
-    if (!passOk) {
-      return res.status(401).json({ error: "Invalid password" });
-    }
-
-    // Generate JWT token
-    jwt.sign(
-      { email: user.email, id: user._id },
-      jwtSecret,
-      {},
-      (err, token) => {
-        if (err) {
-          console.error("JWT error:", err);
-          return res.status(500).json({ error: "Failed to generate token" });
-        }
-        // Set token in cookie and send user data
-        res.cookie("token", token).json(user.toObject());
-      }
-    );
-  } catch (e) {
-    console.error("Login error:", e);
-    res.status(500).json({ error: "Login failed", details: e.message });
-  }
-});
+   const { email, password } = req.body;
+ 
+   try {
+     const userDoc = await UserModel.findOne({ email, role: { $ne: "admin" } }); // Ensure only non-admin users can login
+     if (!userDoc) {
+       return res.status(404).json({ error: "User not found" });
+     }
+ 
+     const passOk = bcrypt.compareSync(password, userDoc.password);
+     if (!passOk) {
+       return res.status(401).json({ error: "Invalid password" });
+     }
+ 
+     // Generate JWT token
+     jwt.sign(
+       { email: userDoc.email, id: userDoc._id, role: userDoc.role },
+       jwtSecret,
+       {},
+       (err, token) => {
+         if (err) {
+           return res.status(500).json({ error: "Failed to generate token" });
+         }
+         // Send token in response
+         res.json({ token, user: userDoc.toObject() });
+       }
+     );
+   } catch (e) {
+     console.error("User login error:", e);
+     res.status(500).json({ error: "User login failed" });
+   }
+ });
 
 // User Profile
 app.get("/profile", (req, res) => {
@@ -246,38 +262,39 @@ app.post("/event/:eventId/like", async (req, res) => {
 });
 
 // Approve Event
-app.post("/event/:eventId/approve", async (req, res) => {
-  const { eventId } = req.params;
-  try {
-    const event = await Event.findByIdAndUpdate(
-      eventId,
-      { status: "Approved" },
-      { new: true }
-    );
-    res.json(event);
-  } catch (error) {
-    console.error("Error approving event:", error);
-    res.status(500).json({ error: "Failed to approve event" });
-  }
-});
+app.post("/event/:eventId/approve", isAdmin, async (req, res) => {
+   const { eventId } = req.params;
+ 
+   try {
+     const event = await Event.findByIdAndUpdate(
+       eventId,
+       { status: "Approved" },
+       { new: true }
+     );
+     res.json(event);
+   } catch (error) {
+     console.error("Error approving event:", error);
+     res.status(500).json({ error: "Failed to approve event" });
+   }
+ });
 
 // Reject Event
-app.post("/event/:eventId/reject", async (req, res) => {
-  const { eventId } = req.params;
-  const { rejectionReason } = req.body;
-
-  try {
-    const event = await Event.findByIdAndUpdate(
-      eventId,
-      { status: "Rejected", rejectionReason },
-      { new: true }
-    );
-    res.json(event);
-  } catch (error) {
-    console.error("Error rejecting event:", error);
-    res.status(500).json({ error: "Failed to reject event" });
-  }
-});
+app.post("/event/:eventId/reject", isAdmin, async (req, res) => {
+   const { eventId } = req.params;
+   const { rejectionReason } = req.body;
+ 
+   try {
+     const event = await Event.findByIdAndUpdate(
+       eventId,
+       { status: "Rejected", rejectionReason },
+       { new: true }
+     );
+     res.json(event);
+   } catch (error) {
+     console.error("Error rejecting event:", error);
+     res.status(500).json({ error: "Failed to reject event" });
+   }
+ });
 
 // Delete Event
 app.delete("/event/:eventId", async (req, res) => {
@@ -293,37 +310,37 @@ app.delete("/event/:eventId", async (req, res) => {
 
 // Admin Login Route
 app.post("/admin/login", async (req, res) => {
-   const { email, password } = req.body;
- 
-   try {
-     const adminDoc = await UserModel.findOne({ email, role: "admin" });
-     if (!adminDoc) {
-       return res.status(404).json({ error: "Admin not found" });
-     }
- 
-     const passOk = bcrypt.compareSync(password, adminDoc.password);
-     if (!passOk) {
-       return res.status(401).json({ error: "Invalid password" });
-     }
- 
-     // Generate JWT token
-     jwt.sign(
-       { email: adminDoc.email, id: adminDoc._id, role: adminDoc.role },
-       jwtSecret,
-       {},
-       (err, token) => {
-         if (err) {
-           return res.status(500).json({ error: "Failed to generate token" });
-         }
-         // Send token in response
-         res.json({ token, admin: adminDoc.toObject() });
-       }
-     );
-   } catch (e) {
-     console.error("Admin login error:", e);
-     res.status(500).json({ error: "Admin login failed" });
-   }
- });
+  const { email, password } = req.body;
+
+  try {
+    const adminDoc = await UserModel.findOne({ email, role: "admin" });
+    if (!adminDoc) {
+      return res.status(404).json({ error: "Admin not found" });
+    }
+
+    const passOk = bcrypt.compareSync(password, adminDoc.password);
+    if (!passOk) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    // Generate JWT token
+    jwt.sign(
+      { email: adminDoc.email, id: adminDoc._id, role: adminDoc.role },
+      jwtSecret,
+      {},
+      (err, token) => {
+        if (err) {
+          return res.status(500).json({ error: "Failed to generate token" });
+        }
+        // Send token in response
+        res.json({ token, admin: adminDoc.toObject() });
+      }
+    );
+  } catch (e) {
+    console.error("Admin login error:", e);
+    res.status(500).json({ error: "Admin login failed" });
+  }
+});
 
 // Ticket Routes
 
