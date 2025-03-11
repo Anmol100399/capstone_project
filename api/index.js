@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const path = require("path");
-const bcrypt = require("bcryptjs"); // Import bcrypt at the top
-const jwt = require("jsonwebtoken"); // Import jwt at the top
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Models
 const UserModel = require("./models/User");
@@ -16,7 +16,7 @@ const Ticket = require("./models/Ticket");
 const app = express();
 
 // Constants
-const bcryptSalt = bcrypt.genSaltSync(10); // Now bcrypt is initialized
+const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {
   console.error("JWT_SECRET is not defined in .env file");
@@ -26,14 +26,16 @@ if (!jwtSecret) {
 // Middleware
 const isAdmin = require("./middleware/isAdmin");
 
-app.use(express.json());
-app.use(cookieParser());
+// Enable CORS for all origins
 app.use(
   cors({
     credentials: true,
-    origin: "*" ,
+    origin: "*", // Allow all origins
   })
 );
+
+app.use(express.json());
+app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the "uploads" folder
 
 // MongoDB Connection
@@ -103,14 +105,14 @@ app.get("/admin/dashboard", isAdmin, (req, res) => {
 
 // Get All Events for Admin Dashboard
 app.get("/admin/events", isAdmin, async (req, res) => {
-   try {
-     const events = await Event.find(); // Fetch all events
-     res.json(events);
-   } catch (error) {
-     console.error("Failed to fetch events:", error);
-     res.status(500).json({ error: "Failed to fetch events" });
-   }
- });
+  try {
+    const events = await Event.find(); // Fetch all events
+    res.json(events);
+  } catch (error) {
+    console.error("Failed to fetch events:", error);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
 
 // User Login
 app.post("/login", async (req, res) => {
@@ -193,7 +195,7 @@ app.post("/createEvent", upload.single("image"), async (req, res) => {
 });
 
 // Get All Events
-app.get("/createEvent", async (req, res) => {
+app.get("/events", async (req, res) => {
   try {
     const events = await Event.find();
     res.status(200).json(events);
@@ -237,19 +239,6 @@ app.post("/event/:eventId/like", async (req, res) => {
   } catch (error) {
     console.error("Error liking event:", error);
     res.status(500).json({ error: "Failed to like event" });
-  }
-});
-
-// Get All Events (Filtered by Status)
-app.get("/events", async (req, res) => {
-  const { status } = req.query;
-  try {
-    const query = status ? { status } : {};
-    const events = await Event.find(query);
-    res.json(events);
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    res.status(500).json({ error: "Failed to fetch events" });
   }
 });
 
