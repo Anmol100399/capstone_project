@@ -195,15 +195,18 @@ app.post("/createEvent", upload.single("image"), async (req, res) => {
 });
 
 // Get All Events
+// Get All Events (Filtered by Status)
 app.get("/events", async (req, res) => {
-  try {
-    const events = await Event.find();
-    res.status(200).json(events);
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    res.status(500).json({ error: "Failed to fetch events from MongoDB" });
-  }
-});
+   try {
+     const { status } = req.query;
+     const query = status ? { status } : {};
+     const events = await Event.find(query);
+     res.status(200).json(events);
+   } catch (error) {
+     console.error("Error fetching events:", error);
+     res.status(500).json({ error: "Failed to fetch events from MongoDB" });
+   }
+ });
 
 // Get Event by ID
 app.get("/event/:id", async (req, res) => {

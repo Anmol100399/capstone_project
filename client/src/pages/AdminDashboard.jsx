@@ -25,6 +25,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
+        console.log("Token:", token);
         setError("No token found. Please log in again.");
         setLoading(false);
         return;
