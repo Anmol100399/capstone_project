@@ -30,7 +30,7 @@ const isAdmin = require("./middleware/isAdmin");
 app.use(
   cors({
     credentials: true,
-    origin: "*", // Allow all origins
+    origin: [ "https://memorable-moments.vercel.app","https://memorable-moments.vercel.app/admin/login" ] ,
   })
 );
 
