@@ -34,44 +34,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleApprove = async (eventId) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `/event/${eventId}/approve`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchEvents(); // Refresh the events list
-    } catch (error) {
-      console.error("Failed to approve event:", error);
-      alert("Failed to approve event. Please try again.");
-    }
-  };
-
-  const handleReject = async (eventId) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `/event/${eventId}/reject`,
-        { rejectionReason: "Your reason here" }, // Add a reason for rejection
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchEvents(); // Refresh the events list
-    } catch (error) {
-      console.error("Failed to reject event:", error);
-      alert("Failed to reject event. Please try again.");
-    }
-  };
-
   useEffect(() => {
     fetchEvents();
   }, []);
