@@ -34,7 +34,7 @@ function App() {
           <Route path="/tickets" element={<TicketPage />} />
           <Route path="/event/:id/ordersummary" element={<OrderSummary />} />
           <Route path="/event/:id/ordersummary/paymentsummary" element={<PaymentSummary />} />
-          <Route path="/admin/adminDashboard" element={<AdminDashboard />} />
+          <Route path="/adminDashboard" element={<AdminDashboard />} />
         </Route>
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
