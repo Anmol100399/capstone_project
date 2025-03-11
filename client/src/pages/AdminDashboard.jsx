@@ -8,6 +8,8 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedEventId, setSelectedEventId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   // Redirect if the user is not an admin
@@ -21,20 +23,36 @@ export default function AdminDashboard() {
 
   const fetchEvents = async () => {
     try {
-      const token = localStorage.getItem('token'); // Get the token from localStorage
-      const response = await axios.get("https://memorable-moments.onrender.com/admin/events", {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`, // Send the token in the Authorization header
-        },
-      });
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No token found. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(
+        "https://memorable-moments.onrender.com/admin/events",
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("API Response:", response.data); // Debugging: Log the response
       setEvents(response.data);
+      setError(null);
     } catch (error) {
       console.error("Failed to fetch events:", {
         message: error.message,
         response: error.response ? error.response.data : null,
         status: error.response ? error.response.status : null,
       });
+
+      setError("Failed to fetch events. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,6 +66,7 @@ export default function AdminDashboard() {
       fetchEvents(); // Refresh the list after approval
     } catch (error) {
       console.error("Failed to approve event:", error);
+      setError("Failed to approve event. Please try again.");
     }
   };
 
@@ -67,6 +86,7 @@ export default function AdminDashboard() {
       fetchEvents(); // Refresh the list after rejection
     } catch (error) {
       console.error("Failed to reject event:", error);
+      setError("Failed to reject event. Please try again.");
     }
   };
 
@@ -78,73 +98,86 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Events</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => (
-          <div
-            key={event._id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-          >
-            {/* Event Image */}
-            {event.image ? (
-              <img
-                src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
-                alt={event.title}
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <img
-                src="../src/assets/event.jpg" // Default image
-                alt="Default Event"
-                className="w-full h-50 object-cover"
-              />
-            )}
 
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {event.title}
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                {event.description}
-              </p>
+      {/* Loading State */}
+      {loading && <p className="text-gray-600">Loading events...</p>}
 
-              <div className="text-sm text-gray-500 mb-4">
-                <strong>Status:</strong>{" "}
-                <span
-                  className={`font-semibold ${
-                    event.status === "Approved"
-                      ? "text-green-600"
-                      : event.status === "Rejected"
-                      ? "text-red-600"
-                      : "text-yellow-600"
-                  }`}
-                >
-                  {event.status}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <button
-                  onClick={() => handleApprove(event._id)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200"
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => setSelectedEventId(event._id)}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
-                >
-                  Reject
-                </button>
-                <button
-                  onClick={() => handleViewDetails(event._id)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                >
-                  Details
-                </button>
+      {/* Error State */}
+      {error && <p className="text-red-600">{error}</p>}
+
+      {/* No Events Found */}
+      {!loading && events.length === 0 && !error && (
+        <p className="text-gray-600">No events found.</p>
+      )}
+
+      {/* Events Grid */}
+      {!loading && events.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.map((event) => (
+            <div
+              key={event._id}
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+            >
+              {/* Event Image */}
+              {event.image ? (
+                <img
+                  src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
+                  alt={event.title}
+                  className="w-full h-48 object-cover"
+                />
+              ) : (
+                <img
+                  src="../src/assets/event.jpg" // Default image
+                  alt="Default Event"
+                  className="w-full h-48 object-cover"
+                />
+              )}
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {event.title}
+                </h3>
+                <p className="text-gray-600 text-sm mb-4">{event.description}</p>
+
+                <div className="text-sm text-gray-500 mb-4">
+                  <strong>Status:</strong>{" "}
+                  <span
+                    className={`font-semibold ${
+                      event.status === "Approved"
+                        ? "text-green-600"
+                        : event.status === "Rejected"
+                        ? "text-red-600"
+                        : "text-yellow-600"
+                    }`}
+                  >
+                    {event.status}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => handleApprove(event._id)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => setSelectedEventId(event._id)}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleViewDetails(event._id)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  >
+                    Details
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Rejection Reason Modal */}
       {selectedEventId && (
