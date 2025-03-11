@@ -99,9 +99,9 @@ app.post("/register", async (req, res) => {
 });
 
 // Admin Dashboard Route
-app.get("/adminDashboard", isAdmin, (req, res) => {
-  res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
-});
+app.get("/adminDashboard", (req, res) => {
+   res.json({ message: "Welcome to the Admin Dashboard" });
+ });
 
 // Get All Events for Admin Dashboard
 app.get("/admin/events", isAdmin, async (req, res) => {
