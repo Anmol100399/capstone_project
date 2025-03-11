@@ -59,10 +59,15 @@ export default function AdminDashboard() {
 
   const handleApprove = async (eventId) => {
     try {
+      const token = localStorage.getItem("token");
       await axios.post(
-        `https://memorable-moments.onrender.com/event/${eventId}/approve`,
+        `/event/${eventId}/approve`,
         {},
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       fetchEvents(); // Refresh the list after approval
     } catch (error) {
@@ -70,17 +75,22 @@ export default function AdminDashboard() {
       setError("Failed to approve event. Please try again.");
     }
   };
-
+  
   const handleReject = async (eventId) => {
     if (!rejectionReason) {
       alert("Please provide a reason for rejection.");
       return;
     }
     try {
+      const token = localStorage.getItem("token");
       await axios.post(
-        `https://memorable-moments.onrender.com/event/${eventId}/reject`,
+        `/event/${eventId}/reject`,
         { rejectionReason },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setRejectionReason(""); // Clear the reason
       setSelectedEventId(null); // Close the modal
@@ -99,19 +109,13 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Events</h2>
-
-      {/* Loading State */}
+  
       {loading && <p className="text-gray-600">Loading events...</p>}
-
-      {/* Error State */}
       {error && <p className="text-red-600">{error}</p>}
-
-      {/* No Events Found */}
       {!loading && events.length === 0 && !error && (
         <p className="text-gray-600">No events found.</p>
       )}
-
-      {/* Events Grid */}
+  
       {!loading && events.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
@@ -119,27 +123,26 @@ export default function AdminDashboard() {
               key={event._id}
               className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
             >
-              {/* Event Image */}
               {event.image ? (
                 <img
-                  src={`https://memorable-moments.onrender.com/${event.image}`} // Ensure the correct path
+                  src={`https://memorable-moments.onrender.com/${event.image}`}
                   alt={event.title}
                   className="w-full h-48 object-cover"
                 />
               ) : (
                 <img
-                  src="../src/assets/event.jpg" // Default image
+                  src="../src/assets/event.jpg"
                   alt="Default Event"
                   className="w-full h-48 object-cover"
                 />
               )}
-
+  
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {event.title}
                 </h3>
                 <p className="text-gray-600 text-sm mb-4">{event.description}</p>
-
+  
                 <div className="text-sm text-gray-500 mb-4">
                   <strong>Status:</strong>{" "}
                   <span
@@ -179,7 +182,7 @@ export default function AdminDashboard() {
           ))}
         </div>
       )}
-
+  
       {/* Rejection Reason Modal */}
       {selectedEventId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -209,5 +212,4 @@ export default function AdminDashboard() {
         </div>
       )}
     </div>
-  );
-}
+  )};

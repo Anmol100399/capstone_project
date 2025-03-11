@@ -1,63 +1,67 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../UserContext";
 
-export default function AdminLoginPage() {
+export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { loginUser } = useContext(UserContext);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
+  // Add the handleAdminLogin function here
+  const handleAdminLogin = async (e) => {
+    e.preventDefault(); // Prevent form submission reload
     try {
-      await loginUser(email, password, true); // Pass isAdmin: true for admin login
+      const response = await axios.post("/admin/login", { email, password });
+      const { token } = response.data;
+
+      // Store token in localStorage
+      localStorage.setItem("token", token);
+
+      // Redirect to admin dashboard
       navigate("/adminDashboard");
-    } catch (err) {
-      console.error("Admin login error:", err);
-      setError(err.message || "Admin login failed");
+    } catch (error) {
+      console.error("Admin login failed:", error);
+      alert("Admin login failed. Please check your credentials.");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded-lg"
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded-lg"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
-          >
-            Login
-          </button>
-        </form>
-        {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
-      </div>
+      <form onSubmit={handleAdminLogin} className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h2 className="text-2xl font-bold mb-6 text-center">Admin Login</h2>
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-1 p-2 w-full border rounded-lg"
+            required
+          />
+        </div>
+        <div className="mb-6">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-1 p-2 w-full border rounded-lg"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
+        >
+          Login
+        </button>
+      </form>
     </div>
   );
 }
