@@ -99,7 +99,7 @@ app.post("/register", async (req, res) => {
 });
 
 // Admin Dashboard Route
-app.get("/admin/dashboard", isAdmin, (req, res) => {
+app.get("/admin/adminDashboard", isAdmin, (req, res) => {
   res.json({ message: "Welcome to the Admin Dashboard", user: req.user });
 });
 
