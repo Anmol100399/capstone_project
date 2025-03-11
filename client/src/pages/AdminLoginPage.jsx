@@ -15,6 +15,7 @@ export default function AdminLogin() {
 
       // Store token in localStorage
       localStorage.setItem("token", token);
+      console.log("Token stored:", token); // Debugging: Log the token
 
       // Redirect to admin dashboard
       navigate("/adminDashboard");

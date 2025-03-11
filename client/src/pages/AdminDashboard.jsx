@@ -9,6 +9,8 @@ export default function AdminDashboard() {
   const fetchEvents = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Token retrieved:", token); // Debugging: Log the token
+
       if (!token) {
         setError("No token found. Please log in again.");
         setLoading(false);
@@ -21,6 +23,7 @@ export default function AdminDashboard() {
         },
       });
 
+      console.log("Events fetched:", response.data); // Debugging: Log the events
       setEvents(response.data);
       setError(null);
     } catch (error) {
