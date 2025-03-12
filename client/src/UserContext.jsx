@@ -48,7 +48,9 @@ export const UserContextProvider = ({ children }) => {
         throw new Error("User not found");
       }
 
-      setUser(response.data); // Update user in context
+      // Set user data based on the response
+      const userData = isAdmin ? response.data.admin : response.data.user;
+      setUser(userData); // Update user in context
       setError(null);
     } catch (err) {
       throw new Error(err.response?.data?.error || "Login failed. Please check your credentials.");

@@ -156,7 +156,7 @@ export default function Header() {
                 className="flex items-center gap-1 md:gap-2 cursor-pointer"
               >
                 <span className="font-semibold text-gray-700 text-sm md:text-base">
-                  {user?.username ? user.username.toUpperCase() : "Welcome!"}
+                  {user?.username ? user.username.toUpperCase() : "Guest!"}
                 </span>
                 <BsFillCaretDownFill
                   className="h-3 w-3 md:h-4 md:w-4 text-gray-500"
