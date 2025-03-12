@@ -9,7 +9,7 @@ export default function AdminDashboard() {
   const fetchEvents = async () => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Token retrieved:", token); // Debugging: Log the token
+      console.log("Token retrieved:", token);
 
       if (!token) {
         setError("No token found. Please log in again.");
@@ -17,10 +17,11 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await axios.get("/admin/events", {
+      const response = await axios.get("https://memorable-moments.onrender.com/admin/events", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        withCredentials: true, // Ensure cookies are sent if using cookies
       });
 
       console.log("Events fetched:", response.data); // Debugging: Log the events
@@ -31,6 +32,46 @@ export default function AdminDashboard() {
       setError("Failed to fetch events. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async (eventId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `https://memorable-moments.onrender.com/event/${eventId}/approve`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
+      console.log("Event approved:", response.data);
+      fetchEvents(); // Refresh the events list
+    } catch (error) {
+      console.error("Failed to approve event:", error);
+    }
+  };
+
+  const handleReject = async (eventId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `https://memorable-moments.onrender.com/event/${eventId}/reject`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
+      console.log("Event rejected:", response.data);
+      fetchEvents(); // Refresh the events list
+    } catch (error) {
+      console.error("Failed to reject event:", error);
     }
   };
 

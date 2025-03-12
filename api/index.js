@@ -43,8 +43,8 @@ mongoose
   
 // Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
-   const { token } = req.cookies;
- 
+   const token = req.headers.authorization?.split(" ")[1];
+    
    if (!token) {
      return res.status(401).json({ error: "Unauthorized" });
    }
@@ -124,14 +124,14 @@ app.get("/adminDashboard", (req, res) => {
 
 // Get All Events for Admin Dashboard
 app.get("/admin/events", isAdmin, async (req, res) => {
-   try {
-     const events = await Event.find();
-     res.json(events);
-   } catch (error) {
-     console.error("Failed to fetch events:", error);
-     res.status(500).json({ error: "Failed to fetch events" });
-   }
- });
+  try {
+    const events = await Event.find(); // Fetch all events
+    res.json(events);
+  } catch (error) {
+    console.error("Failed to fetch events:", error);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
 
 // User Login
 app.post("/login", async (req, res) => {
