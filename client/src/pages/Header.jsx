@@ -96,7 +96,7 @@ export default function Header() {
         </div>
 
         {/* Hamburger Icon for Mobile */}
-        <div className="md:hidden ml-4"> {/* Added margin-left for spacing */}
+        <div className="md:hidden ml-4">
           <button
             onClick={toggleMobileMenu}
             className="text-[#062966] hover:text-[#041A4D] focus:outline-none transition-colors duration-300"
@@ -151,22 +151,33 @@ export default function Header() {
 
           {user && (
             <div className="relative">
-              <Link
-                to="/userAccount"
-                className="flex items-center gap-1 md:gap-2 cursor-pointer"
-              >
+              <div className="flex items-center gap-4">
+                {/* Admin Name */}
                 <span className="font-semibold text-gray-700 text-sm md:text-base">
-                  {user?.username ? user.username.toUpperCase() : "Guest!"}
+                  {user?.username ? user.username.toUpperCase() : "Admin"}
                 </span>
+
+                {/* Dashboard Button */}
+                {user.role === "admin" && (
+                  <Link
+                    to="/adminDashboard"
+                    className="px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+
+                {/* Dropdown Icon */}
                 <BsFillCaretDownFill
-                  className="h-3 w-3 md:h-4 md:w-4 text-gray-500"
+                  className="h-3 w-3 md:h-4 md:w-4 text-gray-500 cursor-pointer"
                   onClick={(e) => {
                     e.preventDefault();
                     setIsMenuOpen(!isMenuOpen);
                   }}
                 />
-              </Link>
+              </div>
 
+              {/* Dropdown Menu */}
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
                   <nav>
@@ -221,12 +232,12 @@ export default function Header() {
 
           {!user && (
             <>
-              <Link to="/login" onClick={closeMobileMenu}> {/* Close menu on click */}
+              <Link to="/login" onClick={closeMobileMenu}>
                 <button className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors duration-200">
                   Log in
                 </button>
               </Link>
-              <Link to="/register" onClick={closeMobileMenu}> {/* Close menu on click */}
+              <Link to="/register" onClick={closeMobileMenu}>
                 <button className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors duration-200">
                   Sign up
                 </button>
@@ -236,23 +247,23 @@ export default function Header() {
 
           {user && (
             <div className="relative">
-              <Link
-                to="/userAccount"
-                onClick={closeMobileMenu}
-                className="flex items-center gap-1 md:gap-2 cursor-pointer"
-              >
+              <div className="flex items-center gap-4">
+                {/* Admin Name */}
                 <span className="font-semibold text-gray-700 text-sm md:text-base">
-                  {user?.username ? user.username.toUpperCase() : "Guest"}
+                  {user?.username ? user.username.toUpperCase() : "Admin"}
                 </span>
+
+                {/* Dropdown Icon */}
                 <BsFillCaretDownFill
-                  className="h-3 w-3 md:h-4 md:w-4 text-gray-500"
+                  className="h-3 w-3 md:h-4 md:w-4 text-gray-500 cursor-pointer"
                   onClick={(e) => {
                     e.preventDefault();
                     setIsMenuOpen(!isMenuOpen);
                   }}
                 />
-              </Link>
+              </div>
 
+              {/* Dropdown Menu */}
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
                   <nav>
