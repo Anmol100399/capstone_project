@@ -41,7 +41,7 @@ Introducing our Event Management System, a solution developed as part of our fin
 7. Start the Client:<br>
       **ems/client:** npm run dev
 
-**The application should now be running. You can access it at http://localhost:5173**<br>
+**The application should now be running. You can access it at https://memorable-moments.vercel.app**<br>
 **The Server is running on https://memorable-moments.onrender.com**
 
 <h1>Thank You</h1>
