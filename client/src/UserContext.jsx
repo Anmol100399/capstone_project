@@ -13,21 +13,17 @@ export const UserContextProvider = ({ children }) => {
     const checkUserSession = async () => {
       try {
         const response = await axios.get("/profile", {
-          withCredentials: true, // Ensure cookies are sent
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
         });
-        if (response.data) {
-          // Get full user data including role
-          const userResponse = await axios.get(`/user/${response.data.id}`);
-          setUser(userResponse.data);
-        }
+        setUser(data);
       } catch (err) {
-        if (err.response?.status === 401) {
-          setUser(null); // No user is logged in
-        } else {
-          setError(err.response?.data?.error || "Failed to fetch user data");
-        }
-      } finally {
-        setLoading(false);
+        console.log("Auth check failed", err);
+        // Clear invalid token
+        localStorage.removeItem('token');
+        setUser(null);
       }
     };
 

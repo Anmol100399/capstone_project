@@ -9,36 +9,30 @@ export default function IndexPage() {
   const { user } = useContext(UserContext);
   const [events, setEvents] = useState([]);
 
-
-  
-  // Debug user context
-  useEffect(() => {
-    console.log("Current user context:", user);
-    if (user) {
-      console.log("User is authenticated:", {
-        id: user._id,
-        name: user.username,
-        role: user.role,
-        email: user.email
-      });
-    } else {
-      console.warn("No user is currently authenticated");
-    }
-  }, [user]);
-
-
-
   // Fetch approved events from the server
   useEffect(() => {
-    axios
-      .get("/events?status=Approved")
-      .then((response) => {
-        console.log("Fetched events:", response.data); // Debugging log
-        setEvents(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching events:", error);
-      });
+    const fetchEvents = async () => {
+      try {
+        const { data } = await axios.get("/events?status=Approved");
+        
+        // Safely process events
+        const processedEvents = data.map(event => ({
+          ...event,
+          safeOwnerName: event.owner?.username 
+            ? event.owner.username.toUpperCase() 
+            : 'ORGANIZER'
+        }));
+        
+        setEvents(processedEvents);
+      } catch (err) {
+        console.error("Event fetch error:", err);
+        setError("Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEvents();
   }, []);
 
   // Like functionality
@@ -168,7 +162,7 @@ export default function IndexPage() {
                         <div className="text-sm text-gray-500">
                           Created By:{" "}
                           <span className="font-semibold">
-                            {event.owner?.username?.toUpperCase() || 'Guest'}
+                          {event.safeOwnerName}
                           </span>
                         </div>
                       </div>

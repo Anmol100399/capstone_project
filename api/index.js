@@ -168,22 +168,20 @@ app.post("/login", async (req, res) => {
  });
 
 // User Profile
-app.get("/profile", (req, res) => {
-  const { token } = req.cookies;
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+app.get("/profile", async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No token provided" });
 
-  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-    if (err) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-    const user = await UserModel.findById(userData.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.json({ id: user._id, name: user.username, email: user.email });
-  });
+    const decoded = jwt.verify(token, jwtSecret);
+    const user = await UserModel.findById(decoded.id).select("-password");
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(401).json({ error: "Invalid or expired token" });
+  }
 });
 
 // User Logout
@@ -212,9 +210,17 @@ app.post("/createEvent", upload.single("image"), async (req, res) => {
 // Get All Events (Filtered by Status)
 app.get("/events", async (req, res) => {
   try {
-    const events = await Event.find(req.query)
-      .populate("owner", "username email")
+    const events = await Event.find({ status: "Approved" })
+      .populate({
+        path: "owner",
+        select: "username email",
+        model: "User"
+      })
       .exec();
+      console.log("Events with populated owners:", events.map(e => ({
+        title: e.title,
+        owner: e.owner ? e.owner.username : 'none'
+      })));
     res.json(events);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch events" });
