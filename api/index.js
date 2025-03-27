@@ -391,6 +391,20 @@ app.get("/user", (req, res) => {
   });
 });
 
+// Get User by ID
+app.get("/user/:id", async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
 // Get Tickets by User ID
 app.get("/tickets/user/:userId", async (req, res) => {
   const { userId } = req.params;

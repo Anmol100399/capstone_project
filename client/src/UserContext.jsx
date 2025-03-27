@@ -15,7 +15,11 @@ export const UserContextProvider = ({ children }) => {
         const response = await axios.get("https://memorable-moments.onrender.com/profile", {
           withCredentials: true, // Ensure cookies are sent
         });
-        setUser(response.data); // Set user data
+        if (response.data) {
+          // Get full user data including role
+          const userResponse = await axios.get(`/user/${response.data.id}`);
+          setUser(userResponse.data);
+        }
       } catch (err) {
         if (err.response?.status === 401) {
           setUser(null); // No user is logged in

@@ -8,19 +8,20 @@ import Qrcode from 'qrcode';
 export default function PaymentSummary() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const ticketQuantity = Number(searchParams.get('tickets')) || 1; // Get ticketQuantity from query parameter
+  const ticketQuantity = Number(searchParams.get('tickets')) || 1;
   const [event, setEvent] = useState(null);
-  const { user } = useContext(UserContext);
+  const { user, loading: userLoading } = useContext(UserContext);
   const [details, setDetails] = useState({
     name: '',
     email: '',
     contactNo: '',
   });
   const [ticketDetails, setTicketDetails] = useState({
+    userid: '',
     eventid: '',
     ticketDetails: {
-      name: user ? user.name : '',
-      email: user ? user.email : '',
+      name: '',
+      email: '',
       eventname: '',
       eventdate: '',
       eventtime: '',
@@ -34,174 +35,176 @@ export default function PaymentSummary() {
     expiryDate: '',
     cvv: '',
   });
-  const [redirect, setRedirect] = useState(false);
-  const [error, setError] = useState(''); // State to store error messages
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!userLoading && !user) {
+      navigate('/login', { state: { from: `/event/${id}/ordersummary/paymentsummary` } });
+    }
+  }, [user, userLoading, navigate, id]);
+
+  // Set user details when user is available
+  useEffect(() => {
+    if (user) {
+      setDetails({
+        name: user.username || '',
+        email: user.email || '',
+        contactNo: '',
+      });
+      setTicketDetails(prev => ({
+        ...prev,
+        userid: user._id,
+        ticketDetails: {
+          ...prev.ticketDetails,
+          name: user.username || '',
+          email: user.email || '',
+        }
+      }));
+    }
+  }, [user]);
+
+  // Fetch event data
   useEffect(() => {
     if (!id) return;
 
-    axios
-      .get(`/event/${id}`) // Correct endpoint
-      .then((response) => {
+    const fetchEvent = async () => {
+      try {
+        const response = await axios.get(`/event/${id}`);
+        if (!response.data) {
+          throw new Error('Event not found');
+        }
         setEvent(response.data);
-        setTicketDetails((prevTicketDetails) => ({
-          ...prevTicketDetails,
+        setTicketDetails(prev => ({
+          ...prev,
           eventid: response.data._id,
           ticketDetails: {
-            ...prevTicketDetails.ticketDetails,
+            ...prev.ticketDetails,
             eventname: response.data.title,
-            eventdate: response.data.eventDate.split("T")[0],
+            eventdate: new Date(response.data.eventDate).toISOString().split('T')[0],
             eventtime: response.data.eventTime,
             ticketprice: response.data.ticketPrice,
-          },
+          }
         }));
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 404) {
-          setError("Event not found. Please check the event ID.");
-        } else {
-          setError("An error occurred while fetching event details.");
-        }
-        console.error("Error fetching event:", error);
-      });
-  }, [id]);
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to load event details');
+        console.error('Event fetch error:', err);
+      }
+    };
 
-  useEffect(() => {
-    setTicketDetails((prevTicketDetails) => ({
-      ...prevTicketDetails,
-      ticketDetails: {
-        ...prevTicketDetails.ticketDetails,
-        name: user ? user.name : '',
-        email: user ? user.email : '',
-      },
-    }));
-  }, [user]);
+    fetchEvent();
+  }, [id]);
 
   const handleChangeDetails = (e) => {
     const { name, value } = e.target;
-    setDetails((prevDetails) => ({
-      ...prevDetails,
-      [name]: value,
-    }));
+    setDetails(prev => ({ ...prev, [name]: value }));
   };
 
   const handleChangePayment = (e) => {
     const { name, value } = e.target;
-    setPayment((prevPayment) => ({
-      ...prevPayment,
-      [name]: value,
-    }));
+    setPayment(prev => ({ ...prev, [name]: value }));
   };
 
   const validateFields = () => {
     if (!details.name || !details.email || !details.contactNo) {
-      setError('Please fill out all your details.');
+      setError('Please fill out all your details');
       return false;
     }
     if (!payment.nameOnCard || !payment.cardNumber || !payment.expiryDate || !payment.cvv) {
-      setError('Please fill out all credit card details.');
+      setError('Please fill out all payment details');
       return false;
     }
-    setError(''); // Clear any previous errors
+    setError('');
     return true;
+  };
+
+  const generateQRCode = async (eventName, userName) => {
+    try {
+      return await Qrcode.toDataURL(`Event: ${eventName}\nAttendee: ${userName}\nDate: ${new Date().toLocaleDateString()}`);
+    } catch (err) {
+      console.error('QR generation error:', err);
+      return '';
+    }
   };
 
   const createTicket = async (e) => {
     e.preventDefault();
-    if (!validateFields()) return; // Stop if validation fails
+    if (!validateFields()) return;
+    if (!user) {
+      setError('Please login to purchase tickets');
+      return;
+    }
 
     try {
-      // Loop through the number of tickets selected
-      for (let i = 0; i < ticketQuantity; i++) {
-        // Generate a unique QR code for each ticket
-        const qrCode = await generateQRCode(
-          ticketDetails.ticketDetails.eventname,
-          `${ticketDetails.ticketDetails.name} - Ticket ${i + 1}` // Add a unique identifier for each ticket
-        );
+      const qrCode = await generateQRCode(ticketDetails.ticketDetails.eventname, details.name);
+      
+      const ticketData = {
+        userid: user._id,
+        eventid: id,
+        ticketDetails: {
+          ...ticketDetails.ticketDetails,
+          name: details.name,
+          email: details.email,
+          qr: qrCode,
+        },
+        count: ticketQuantity
+      };
 
-        // Update ticket details with the QR code
-        const updatedTicketDetails = {
-          ...ticketDetails,
-          ticketDetails: {
-            ...ticketDetails.ticketDetails,
-            qr: qrCode,
-          },
-        };
-
-        // Create the ticket
-        await axios.post(`/tickets`, updatedTicketDetails);
-      }
-
-      alert(`${ticketQuantity} Tickets Created Successfully`);
-      // Navigate to TicketPage with eventId and ticketQuantity
-      navigate('/tickets', {
-        state: { eventId: id, ticketQuantity },
+      const response = await axios.post('/tickets', ticketData, {
+        withCredentials: true
       });
-    } catch (error) {
-      console.error('Error creating tickets:', error);
-      alert("Generating Tickets Failed: Make sure you are logged in to get tickets");
+
+      if (response.data) {
+        alert(`Successfully purchased ${ticketQuantity} ticket(s)!`);
+        navigate('/tickets');
+      }
+    } catch (err) {
+      console.error('Ticket creation error:', err);
+      setError(err.response?.data?.error || 'Failed to create ticket. Please try again.');
     }
   };
 
-  const generateQRCode = async (name, eventName) => {
-    try {
-      const qrCodeData = await Qrcode.toDataURL(
-        `Event Name: ${name} \n Name: ${eventName}`
-      );
-      return qrCodeData;
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-      return null;
-    }
-  };
+  if (userLoading) {
+    return <div className="text-center py-10">Loading...</div>;
+  }
 
   if (error) {
-    return <div className="text-center py-10 text-lg text-red-600">{error}</div>;
+    return <div className="text-center py-10 text-red-600">{error}</div>;
   }
 
   if (!event) {
-    return <div className="text-center py-10 text-lg text-gray-600">Loading event details...</div>;
+    return <div className="text-center py-10">Loading event details...</div>;
   }
 
-  // Calculate total price
-  const totalPrice = event.ticketPrice * ticketQuantity;
-
-  // Format the event date correctly (fix for timezone issue)
-  const formattedEventDate = new Date(event.eventDate).toLocaleDateString("en-US", {
-    timeZone: 'UTC', // Ensure the date is treated as UTC
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const totalPrice = (event.ticketPrice * ticketQuantity).toFixed(2);
+  const eventDate = new Date(event.eventDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   return (
-    <>
-      <div>
-        <Link to={'/event/' + event._id + '/ordersummary'}>
-          <button
-            className="inline-flex mt-12 gap-2 p-3 ml-4 sm:ml-12 bg-gray-100 justify-center items-center text-blue-700 font-bold rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition-all"
-          >
-            <IoMdArrowBack className="w-6 h-6" />
-            <span className="text-sm sm:text-base">Back</span>
-          </button>
-        </Link>
-      </div>
-      <div className="flex flex-col lg:flex-row mt-8 mx-4 sm:mx-12 space-y-8 lg:space-y-0 lg:space-x-20">
-        {/* Left Section - Your Details and Payment Option */}
-        <div className="w-full lg:w-3/5 space-y-8">
-          {/* Your Details Section */}
-          <div className="bg-gray-100 shadow-lg p-6 sm:p-8 rounded-md">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4">Your Details</h2>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <Link to={`/event/${id}/ordersummary`} className="inline-flex items-center gap-2 mb-8">
+        <IoMdArrowBack className="w-5 h-5" />
+        <span>Back to Order Summary</span>
+      </Link>
+
+      <div className="grid md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4">Your Details</h2>
             <div className="space-y-4">
               <input
                 type="text"
                 name="name"
                 value={details.name}
                 onChange={handleChangeDetails}
-                placeholder="Name"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                placeholder="Full Name"
+                className="w-full p-3 border rounded"
+                required
               />
               <input
                 type="email"
@@ -209,37 +212,35 @@ export default function PaymentSummary() {
                 value={details.email}
                 onChange={handleChangeDetails}
                 placeholder="Email"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                className="w-full p-3 border rounded"
+                required
               />
               <input
                 type="tel"
                 name="contactNo"
                 value={details.contactNo}
                 onChange={handleChangeDetails}
-                placeholder="Contact No"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                placeholder="Phone Number"
+                className="w-full p-3 border rounded"
+                required
               />
             </div>
           </div>
 
-          {/* Payment Option Section */}
-          <div className="bg-gray-100 shadow-lg p-6 sm:p-8 rounded-md">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4">Payment Option</h2>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4">Payment Method</h2>
             <div className="space-y-4">
-              <button
-                type="button"
-                className="px-8 py-3 text-black bg-blue-100 focus:outline border rounded-sm border-gray-300 w-full text-sm sm:text-base"
-                disabled
-              >
-                Credit / Debit Card
-              </button>
+              <div className="border rounded p-4 bg-gray-50">
+                Credit/Debit Card
+              </div>
               <input
                 type="text"
                 name="nameOnCard"
                 value={payment.nameOnCard}
                 onChange={handleChangePayment}
                 placeholder="Name on Card"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                className="w-full p-3 border rounded"
+                required
               />
               <input
                 type="text"
@@ -247,16 +248,18 @@ export default function PaymentSummary() {
                 value={payment.cardNumber}
                 onChange={handleChangePayment}
                 placeholder="Card Number"
-                className="input-field w-full h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                className="w-full p-3 border rounded"
+                required
               />
-              <div className="flex space-x-4">
+              <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text"
                   name="expiryDate"
                   value={payment.expiryDate}
                   onChange={handleChangePayment}
-                  placeholder="Expiry Date (MM/YY)"
-                  className="input-field w-2/3 h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                  placeholder="MM/YY"
+                  className="w-full p-3 border rounded"
+                  required
                 />
                 <input
                   type="text"
@@ -264,69 +267,58 @@ export default function PaymentSummary() {
                   value={payment.cvv}
                   onChange={handleChangePayment}
                   placeholder="CVV"
-                  className="input-field w-1/3 h-12 bg-gray-50 border border-gray-300 rounded-md p-3 text-sm sm:text-base"
+                  className="w-full p-3 border rounded"
+                  required
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Section - Order Summary */}
-        <div className="w-full lg:w-1/4 bg-blue-100 p-6 rounded-lg shadow-lg h-fit">
-          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Order Summary</h2>
-          
-          {/* Event Details */}
-          <div className="flex justify-between text-lg font-semibold mb-4">
-            <span>{event.title}</span>
-            <span className="text-blue-400">CAD {event.ticketPrice}$</span>
-          </div>
-          
-          {/* Event Date and Time */}
-          <div className="text-sm text-gray-600 mb-4">
-            <p>{formattedEventDate}</p> {/* Use the correctly formatted date */}
-            <p>{event.eventTime}</p>
-          </div>
-          
-          <hr className="border-gray-300 mb-4" />
-
-          {/* Ticket Quantity */}
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm">Tickets</span>
-            <span className="text-sm font-semibold text-gray-800">{ticketQuantity}</span>
+        <div className="bg-white p-6 rounded-lg shadow h-fit sticky top-4">
+          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+          <div className="mb-4">
+            <h3 className="font-semibold">{event.title}</h3>
+            <p className="text-gray-600 text-sm mt-1">
+              {eventDate} at {event.eventTime}
+            </p>
+            <p className="text-blue-600 font-semibold mt-2">
+              CAD {event.ticketPrice.toFixed(2)}
+            </p>
           </div>
 
-          {/* Total Price */}
-          <div className="flex justify-between font-semibold text-lg mb-6">
-            <span>SUB TOTAL</span>
-            <span className="text-blue-800">CAD {totalPrice}$</span>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="text-red-600 text-sm mb-4">
-              {error}
+          <div className="border-t pt-4">
+            <div className="flex justify-between mb-2">
+              <span>Tickets:</span>
+              <span>{ticketQuantity}</span>
             </div>
+            <div className="flex justify-between font-bold text-lg mt-4">
+              <span>Total:</span>
+              <span>CAD {totalPrice}</span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm mt-4">{error}</div>
           )}
 
-          {/* Payment Button */}
           <button
-            type="button"
             onClick={createTicket}
-            className={`w-full p-3 text-white rounded-md ${
-              !details.name || !details.email || !details.contactNo || 
-              !payment.nameOnCard || !payment.cardNumber || !payment.expiryDate || !payment.cvv
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-blue-700 hover:bg-blue-800'
-            }`}
             disabled={
-              !details.name || !details.email || !details.contactNo || 
-              !payment.nameOnCard || !payment.cardNumber || !payment.expiryDate || !payment.cvv
+              !details.name ||
+              !details.email ||
+              !details.contactNo ||
+              !payment.nameOnCard ||
+              !payment.cardNumber ||
+              !payment.expiryDate ||
+              !payment.cvv
             }
+            className="w-full bg-blue-600 text-white py-3 rounded mt-6 disabled:bg-gray-300"
           >
-            Make Payment
+            Complete Payment
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

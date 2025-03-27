@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
-  owner: String,
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   title: String,
   description: String,
   organizedBy: String,
