@@ -9,6 +9,25 @@ export default function IndexPage() {
   const { user } = useContext(UserContext);
   const [events, setEvents] = useState([]);
 
+
+  
+  // Debug user context
+  useEffect(() => {
+    console.log("Current user context:", user);
+    if (user) {
+      console.log("User is authenticated:", {
+        id: user._id,
+        name: user.username,
+        role: user.role,
+        email: user.email
+      });
+    } else {
+      console.warn("No user is currently authenticated");
+    }
+  }, [user]);
+
+
+
   // Fetch approved events from the server
   useEffect(() => {
     axios
@@ -148,7 +167,9 @@ export default function IndexPage() {
                         </div>
                         <div className="text-sm text-gray-500">
                           Created By:{" "}
-                          <span className="font-semibold">{event.owner.toUpperCase()}</span>
+                          <span className="font-semibold">
+                            {event.owner?.username?.toUpperCase() || 'Guest'}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">

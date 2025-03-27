@@ -188,7 +188,7 @@ app.get("/profile", (req, res) => {
 
 // User Logout
 app.post("/logout", (req, res) => {
-  res.cookie("token", "").json(true);
+  res.clearCookie("token").json({ message: "Logged out successfully" });
 });
 
 // Event Routes
@@ -196,30 +196,30 @@ app.post("/logout", (req, res) => {
 // Create Event
 app.post("/createEvent", upload.single("image"), async (req, res) => {
   try {
-    const eventData = req.body;
-    eventData.image = req.file ? req.file.path : "";
-    const newEvent = new Event(eventData);
-    await newEvent.save();
-    res.status(201).json(newEvent);
+    const eventData = {
+      ...req.body,
+      owner: req.body.ownerId,
+      image: req.file?.path || ""
+    };
+    const newEvent = await Event.create(eventData);
+    res.status(201).json(await Event.findById(newEvent._id).populate("owner"));
   } catch (error) {
-    console.error("Error creating event:", error);
-    res.status(500).json({ error: "Failed to save the event to MongoDB" });
+    res.status(500).json({ error: "Failed to create event" });
   }
 });
 
 // Get All Events
 // Get All Events (Filtered by Status)
 app.get("/events", async (req, res) => {
-   try {
-     const { status } = req.query;
-     const query = status ? { status } : {};
-     const events = await Event.find(query);
-     res.status(200).json(events);
-   } catch (error) {
-     console.error("Error fetching events:", error);
-     res.status(500).json({ error: "Failed to fetch events from MongoDB" });
-   }
- });
+  try {
+    const events = await Event.find(req.query)
+      .populate("owner", "username email")
+      .exec();
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
 
 // Get Event by ID
 app.get("/event/:id", async (req, res) => {
@@ -389,20 +389,6 @@ app.get("/user", (req, res) => {
     }
     res.json({ id: user._id, name: user.name, email: user.email });
   });
-});
-
-// Get User by ID
-app.get("/user/:id", async (req, res) => {
-  try {
-    const user = await UserModel.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.json(user);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Failed to fetch user" });
-  }
 });
 
 // Get Tickets by User ID

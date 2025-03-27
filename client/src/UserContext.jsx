@@ -12,7 +12,7 @@ export const UserContextProvider = ({ children }) => {
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        const response = await axios.get("https://memorable-moments.onrender.com/profile", {
+        const response = await axios.get("/profile", {
           withCredentials: true, // Ensure cookies are sent
         });
         if (response.data) {
