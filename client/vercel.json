@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist",
-        "installCommand": "npm install",
+        "installCommand": "npm install --legacy-peer-deps",
         "buildCommand": "npm run build"
       }
     }
@@ -14,7 +14,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://memorable-moments.onrender.com"
+      "dest": "https://memorable-moments.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",
