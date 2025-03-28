@@ -168,25 +168,27 @@ app.post("/login", async (req, res) => {
  });
 
 // User Profile
-app.get("/profile", async (req, res) => {
-  try {
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "No token provided" });
-
-    const decoded = jwt.verify(token, jwtSecret);
-    const user = await UserModel.findById(decoded.id).select("-password");
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    res.json(user);
-  } catch (err) {
-    console.error("Profile error:", err);
-    res.status(401).json({ error: "Invalid or expired token" });
+app.get("/profile", (req, res) => {
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
+
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    const user = await UserModel.findById(userData.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ id: user._id, name: user.username, email: user.email });
+  });
 });
 
 // User Logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("token").json({ message: "Logged out successfully" });
+  res.cookie("token", "").json(true);
 });
 
 // Event Routes
@@ -194,38 +196,30 @@ app.post("/logout", (req, res) => {
 // Create Event
 app.post("/createEvent", upload.single("image"), async (req, res) => {
   try {
-    const eventData = {
-      ...req.body,
-      owner: req.body.ownerId,
-      image: req.file?.path || ""
-    };
-    const newEvent = await Event.create(eventData);
-    res.status(201).json(await Event.findById(newEvent._id).populate("owner"));
+    const eventData = req.body;
+    eventData.image = req.file ? req.file.path : "";
+    const newEvent = new Event(eventData);
+    await newEvent.save();
+    res.status(201).json(newEvent);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create event" });
+    console.error("Error creating event:", error);
+    res.status(500).json({ error: "Failed to save the event to MongoDB" });
   }
 });
 
 // Get All Events
 // Get All Events (Filtered by Status)
 app.get("/events", async (req, res) => {
-  try {
-    const events = await Event.find({ status: "Approved" })
-      .populate({
-        path: "owner",
-        select: "username email",
-        model: "User"
-      })
-      .exec();
-      console.log("Events with populated owners:", events.map(e => ({
-        title: e.title,
-        owner: e.owner ? e.owner.username : 'none'
-      })));
-    res.json(events);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch events" });
-  }
-});
+   try {
+     const { status } = req.query;
+     const query = status ? { status } : {};
+     const events = await Event.find(query);
+     res.status(200).json(events);
+   } catch (error) {
+     console.error("Error fetching events:", error);
+     res.status(500).json({ error: "Failed to fetch events from MongoDB" });
+   }
+ });
 
 // Get Event by ID
 app.get("/event/:id", async (req, res) => {
