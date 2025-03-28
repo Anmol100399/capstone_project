@@ -207,7 +207,6 @@ app.post("/createEvent", upload.single("image"), async (req, res) => {
   }
 });
 
-// Get All Events
 // Get All Events (Filtered by Status)
 app.get("/events", async (req, res) => {
    try {
