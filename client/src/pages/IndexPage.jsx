@@ -157,12 +157,6 @@ export default function IndexPage() {
                           Organized By:{" "}
                           <span className="font-semibold">{event.organizedBy}</span>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          Created By:{" "}
-                          <span className="font-semibold">
-                          {event.owner}
-                          </span>
-                        </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <button

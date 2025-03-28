@@ -3,17 +3,16 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { UserContext } from "../UserContext";
 import { BsFillCaretDownFill } from "react-icons/bs";
-import { FaBars, FaTimes } from "react-icons/fa"; // Hamburger and close icons
+import { FaBars, FaTimes } from "react-icons/fa";
 
 export default function Header() {
   const { user, logoutUser } = useContext(UserContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef();
 
-  // Close search results on document click
   useEffect(() => {
     const handleDocumentClick = (event) => {
       if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
@@ -25,13 +24,10 @@ export default function Header() {
     return () => document.removeEventListener("click", handleDocumentClick);
   }, []);
 
-  // Handle search input change
   const handleSearchInputChange = (event) => setSearchQuery(event.target.value);
 
-  // Logout function
   const logout = async () => {
     try {
-      console.log("Logging out user:", user);
       await logoutUser();
       window.location.href = "/";
     } catch (error) {
@@ -39,25 +35,21 @@ export default function Header() {
     }
   };
 
-  // Toggle mobile menu
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Close mobile menu when a link is clicked
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
 
   return (
     <header className="bg-white shadow-md py-3 px-4 sm:px-6 md:px-8 sticky top-0 z-50">
-      {/* Header Content (Logo, Search Bar, Hamburger Icon) */}
       <div className="flex justify-between items-center">
         {/* Logo and Search Bar */}
         <div className="flex items-center gap-4 md:gap-8 w-full md:w-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            {/* Show EventLogo.png on phone screens and logo.png on larger screens */}
             <img
               src={window.innerWidth < 768 ? "/assets/EventLogo.png" : "/assets/logo.png"}
               alt="Logo"
@@ -104,12 +96,12 @@ export default function Header() {
             {isMobileMenuOpen ? (
               <FaTimes className="w-6 h-6" />
             ) : (
-              <FaBars className="w-6 h-6" /> // Hamburger icon
+              <FaBars className="w-6 h-6" />
             )}
           </button>
         </div>
 
-        {/* Navigation Links (Visible on Desktop) */}
+        {/* Navigation Links (Desktop) */}
         <div className="hidden md:flex items-center gap-4 md:gap-6">
           <Link
             to="/createEvent"
@@ -152,20 +144,13 @@ export default function Header() {
           {user && (
             <div className="relative">
               <div className="flex items-center gap-4">
-                {/* Admin Name */}
-                <span className="font-semibold text-gray-700 text-sm md:text-base">
-                  {user?.username ? user.username.toUpperCase() : "Admin"}
-                </span>
-
-                {/* Dashboard Button */}
-                {user.role === "admin" && (
-                  <Link
-                    to="/adminDashboard"
-                    className="px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors duration-200"
-                  >
-                    Dashboard
-                  </Link>
-                )}
+                {/* Clickable Username */}
+                <Link 
+                  to="/useraccount" 
+                  className="font-semibold text-gray-700 text-sm md:text-base hover:text-blue-600 transition-colors"
+                >
+                  {user?.username ? user.username.toUpperCase() : "ACCOUNT"}
+                </Link>
 
                 {/* Dropdown Icon */}
                 <BsFillCaretDownFill
@@ -179,7 +164,7 @@ export default function Header() {
 
               {/* Dropdown Menu */}
               {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                   <nav>
                     <div className="flex flex-col py-2">
                       <button
@@ -197,13 +182,13 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu (Opens Below the Header) */}
+      {/* Mobile Menu */}
       <div
         className={`${
           isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        } md:hidden overflow-hidden transition-all duration-500 ease-in-out`}
+        } md:hidden overflow-hidden transition-all duration-500 ease-in-out bg-white`}
       >
-        <div className="flex flex-col items-center gap-4 py-4">
+        <div className="flex flex-col items-center gap-4 py-4 border-t border-gray-200">
           <Link
             to="/createEvent"
             onClick={closeMobileMenu}
@@ -246,38 +231,44 @@ export default function Header() {
           )}
 
           {user && (
-            <div className="relative">
-              <div className="flex items-center gap-4">
-                {/* Admin Name */}
-                <span className="font-semibold text-gray-700 text-sm md:text-base">
-                  {user?.username ? user.username.toUpperCase() : "Admin"}
-                </span>
+            <div className="relative w-full px-4">
+              <div className="flex flex-col items-center gap-4">
+                {/* Clickable Username */}
+                <Link 
+                  to="/useraccount" 
+                  onClick={closeMobileMenu}
+                  className="font-semibold text-gray-700 text-sm md:text-base hover:text-blue-600 transition-colors"
+                >
+                  {user?.username ? user.username.toUpperCase() : "ACCOUNT"}
+                </Link>
 
-                {/* Dropdown Icon */}
-                <BsFillCaretDownFill
-                  className="h-3 w-3 md:h-4 md:w-4 text-gray-500 cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsMenuOpen(!isMenuOpen);
-                  }}
-                />
-              </div>
-
-              {/* Dropdown Menu */}
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
-                  <nav>
-                    <div className="flex flex-col py-2">
-                      <button
-                        onClick={logout}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                      >
-                        Log out
-                      </button>
-                    </div>
-                  </nav>
+                {/* Mobile Dropdown Menu */}
+                <div className="w-full flex flex-col gap-2">
+                  <Link
+                    to="/useraccount"
+                    onClick={closeMobileMenu}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                  >
+                    My Account
+                  </Link>
+                  <Link
+                    to="/tickets"
+                    onClick={closeMobileMenu}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                  >
+                    My Tickets
+                  </Link>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      logout();
+                    }}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                  >
+                    Log out
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>
